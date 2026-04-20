@@ -240,9 +240,10 @@ final class AppState: ObservableObject {
 
     func clearOverride() {
         displayState.overrideText = nil
-        // Return to .idle; the next poll will bring the correct state
         displayState.mode = .idle
-        lastSeenPersistentID = ""   // force re-evaluation on next poll
+        isPausedByUser = false          // don't inherit a pre-override user-pause
+        pendingStateBeforePause = nil
+        lastSeenPersistentID = ""       // force re-evaluation on next poll
         lastSeenPlayerState = .stopped
     }
 
