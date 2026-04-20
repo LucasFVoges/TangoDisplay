@@ -148,6 +148,10 @@ final class AppState: ObservableObject {
             playlistCurrentIndex = idx
         }
 
+        // Trigger a fresh playlist fetch so the look-ahead reflects the current playlist.
+        // handlePlaylistUpdate will update or clear nextTrack when the result arrives.
+        poller.triggerPlaylistFetch()
+
         // Find the next non-cortina track (first track of next tanda) from playlist
         let nextTrack = findNextDanceTrack(after: playlistCurrentIndex, detector: detector)
         trackHistory.removeAll()
@@ -162,6 +166,7 @@ final class AppState: ObservableObject {
 
     private func handleDanceTrack(track: Track, detector: CortinaDetector) {
         let comingFromPlaying = (displayState.mode == .playing)
+        let comingFromCortina = (displayState.mode == .cortina)
 
         // If transitioning from cortina/idle, start fresh history
         if displayState.mode == .cortina || displayState.mode == .idle {
@@ -173,12 +178,12 @@ final class AppState: ObservableObject {
             trackHistory.append(track)
         }
 
-        // If we transitioned directly from .playing and the new track isn't in the
-        // known playlist (no data, or a different playlist loaded), the history-based
-        // count can't be trusted. Reset history, suppress the counter, and fetch
-        // fresh playlist data. handlePlaylistUpdate will set the correct position.
+        // If we transitioned from .playing or .cortina and the new track isn't in the
+        // known playlist (different playlist loaded), the history-based count can't be
+        // trusted. Reset history, suppress the counter, and fetch fresh playlist data.
+        // handlePlaylistUpdate will set the correct position.
         let trackInPlaylist = playlistTracks?.contains(where: { $0.persistentID == track.persistentID }) ?? false
-        if comingFromPlaying && !trackInPlaylist {
+        if (comingFromPlaying || comingFromCortina) && !trackInPlaylist {
             trackHistory = [track]
             poller.triggerPlaylistFetch()
             displayState = DisplayState(
@@ -227,6 +232,19 @@ final class AppState: ObservableObject {
             if let position = computeTandaPosition(track: current, detector: detector),
                displayState.tandaPosition != position {
                 displayState.tandaPosition = position
+            }
+        }
+
+        // Re-evaluate cortina look-ahead with fresh data. If the cortina is no longer
+        // in the new playlist (user switched playlists), clear the stale next-track display.
+        if displayState.mode == .cortina, let currentTrack = displayState.currentTrack {
+            let detector = settings.makeDetector()
+            if let tracks = playlistTracks,
+               let idx = tracks.firstIndex(where: { $0.persistentID == currentTrack.persistentID }) {
+                playlistCurrentIndex = idx
+                displayState.nextTrack = findNextDanceTrack(after: idx, detector: detector)
+            } else {
+                displayState.nextTrack = nil
             }
         }
     }
