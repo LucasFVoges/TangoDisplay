@@ -52,6 +52,12 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    // MARK: - Player source
+
+    @Published var selectedPlayer: MusicPlayerChoice {
+        didSet { UserDefaults.standard.set(selectedPlayer.rawValue, forKey: kPrefix + "selectedPlayer") }
+    }
+
     // MARK: - Appearance / presentation
 
     @Published var activeProfileID: UUID? {
@@ -92,6 +98,8 @@ final class AppSettings: ObservableObject {
             denylistPartialMatchGenres = Set(AppSettings.parseGenres(
                 ud.string(forKey: kPrefix + "denylistGenres"), default: ["Tango", "Vals", "Milonga"]))
         }
+        let rawPlayer = ud.string(forKey: kPrefix + "selectedPlayer") ?? ""
+        selectedPlayer = MusicPlayerChoice(rawValue: rawPlayer) ?? .musicApp
         if let idString = ud.string(forKey: kPrefix + "activeProfileID") {
             activeProfileID = UUID(uuidString: idString)
         } else {

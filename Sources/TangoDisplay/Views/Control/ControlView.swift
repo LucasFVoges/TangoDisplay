@@ -7,6 +7,7 @@ enum SidebarItem: String, Hashable, CaseIterable {
     case cortinaRules
     case appearance
     case display
+    case player
     case profiles
 
     var label: String {
@@ -15,6 +16,7 @@ enum SidebarItem: String, Hashable, CaseIterable {
         case .cortinaRules:  return "Cortina Rules"
         case .appearance:    return "Appearance"
         case .display:       return "Display"
+        case .player:        return "Player"
         case .profiles:      return "Profiles"
         }
     }
@@ -25,15 +27,16 @@ enum SidebarItem: String, Hashable, CaseIterable {
         case .cortinaRules:  return "music.note"
         case .appearance:    return "paintbrush"
         case .display:       return "display"
+        case .player:        return "music.note.list"
         case .profiles:      return "paintpalette"
         }
     }
 
     var section: String {
         switch self {
-        case .live:                      return "Live"
-        case .cortinaRules, .appearance, .display: return "Settings"
-        case .profiles:                  return "Profiles"
+        case .live:                               return "Live"
+        case .cortinaRules, .appearance, .display, .player: return "Settings"
+        case .profiles:                           return "Profiles"
         }
     }
 }
@@ -121,6 +124,7 @@ struct ControlView: View {
                 sidebarRow(.cortinaRules)
                 sidebarRow(.appearance)
                 sidebarRow(.display)
+                sidebarRow(.player)
             }
             Section("Profiles") {
                 sidebarRow(.profiles)
@@ -152,6 +156,10 @@ struct ControlView: View {
                 .environmentObject(appState.settings)
         case .display:
             DisplaySettingsView()
+                .environmentObject(appState)
+                .environmentObject(appState.settings)
+        case .player:
+            PlayerSettingsView()
                 .environmentObject(appState)
                 .environmentObject(appState.settings)
         case .profiles:

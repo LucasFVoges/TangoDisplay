@@ -27,7 +27,7 @@ final class AppState: ObservableObject {
 
     let settings = AppSettings()
     let profileStore = ProfileStore()
-    private(set) lazy var poller = MusicPoller()
+    private var activeSource: any MusicPlayerSource = MusicPoller()  // replaced in start()
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Internal state
@@ -52,26 +52,74 @@ final class AppState: ObservableObject {
         profileStore.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
+        observePlayerSelection()
     }
 
     // MARK: - Lifecycle
 
     func start() {
-        poller.onTrackUpdate = { [weak self] track, state in
-            self?.handleTrackUpdate(track: track, playerState: state)
-        }
-        poller.onPlaylistUpdate = { [weak self] context in
-            self?.handlePlaylistUpdate(context)
-        }
-        poller.onWatchdogChanged = { [weak self] active in
-            self?.watchdogActive = active
-            self?.appendDebugLog(active ? "⚠ Watchdog active — Music.app unreachable" : "✓ Music.app reconnected")
-        }
-        poller.start()
+        activeSource = AppState.makeSource(for: settings.selectedPlayer)
+        wireCallbacks(to: activeSource)
+        activeSource.start()
     }
 
     func pollNow() {
-        poller.pollNow()
+        activeSource.pollNow()
+    }
+
+    // MARK: - Source management
+
+    private static func makeSource(for choice: MusicPlayerChoice) -> any MusicPlayerSource {
+        switch choice {
+        case .musicApp: return MusicPoller()
+        case .swinsian: return SwinsianMonitor()
+        }
+    }
+
+    private func wireCallbacks(to source: any MusicPlayerSource) {
+        source.onTrackUpdate = { [weak self] track, state in
+            self?.handleTrackUpdate(track: track, playerState: state)
+        }
+        source.onPlaylistUpdate = { [weak self] context in
+            self?.handlePlaylistUpdate(context)
+        }
+        source.onWatchdogChanged = { [weak self] active in
+            self?.watchdogActive = active
+            let name = self?.settings.selectedPlayer.displayName ?? "Player"
+            self?.appendDebugLog(active
+                ? "⚠ Watchdog active — \(name) unreachable"
+                : "✓ \(name) reconnected")
+        }
+    }
+
+    private func observePlayerSelection() {
+        settings.$selectedPlayer
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] choice in self?.switchSource(to: choice) }
+            .store(in: &cancellables)
+    }
+
+    private func switchSource(to choice: MusicPlayerChoice) {
+        activeSource.stop()
+        resetTransientState()
+        let newSource = AppState.makeSource(for: choice)
+        wireCallbacks(to: newSource)
+        activeSource = newSource
+        activeSource.start()
+        appendDebugLog("Switched player to \(choice.displayName)")
+    }
+
+    private func resetTransientState() {
+        trackHistory.removeAll()
+        playlistTracks = nil
+        playlistCurrentIndex = 0
+        lastSeenPersistentID = ""
+        lastSeenPlayerState = .stopped
+        isPausedByUser = false
+        pendingStateBeforePause = nil
+        watchdogActive = false
+        displayState = DisplayState()
     }
 
     // MARK: - Track update (core state machine)
@@ -102,7 +150,7 @@ final class AppState: ObservableObject {
             return
         }
 
-        // Music.app paused (not user-initiated): show track but indicate paused
+        // Player paused (not user-initiated): show track but indicate paused
         if playerState == .paused {
             if trackHistory.last?.persistentID != track.persistentID {
                 trackHistory.append(track)
@@ -126,7 +174,7 @@ final class AppState: ObservableObject {
             let raw = track.genre
             let trimmed = raw.trimmingCharacters(in: .whitespaces)
             if raw.isEmpty {
-                appendDebugLog("⚠ '\(track.title)' has empty genre — classified as cortina (check Music.app tags)")
+                appendDebugLog("⚠ '\(track.title)' has empty genre — classified as cortina (check player tags)")
             } else if raw != trimmed {
                 appendDebugLog("⚠ '\(track.title)' genre \(raw.debugDescription) has leading/trailing whitespace — classified as cortina after trimming to \(trimmed.debugDescription)")
             }
@@ -150,7 +198,7 @@ final class AppState: ObservableObject {
 
         // Trigger a fresh playlist fetch so the look-ahead reflects the current playlist.
         // handlePlaylistUpdate will update or clear nextTrack when the result arrives.
-        poller.triggerPlaylistFetch()
+        activeSource.triggerPlaylistFetch()
 
         // Find the next non-cortina track (first track of next tanda) from playlist
         let nextTrack = findNextDanceTrack(after: playlistCurrentIndex, detector: detector)
@@ -185,7 +233,7 @@ final class AppState: ObservableObject {
         let trackInPlaylist = playlistTracks?.contains(where: { $0.persistentID == track.persistentID }) ?? false
         if (comingFromPlaying || comingFromCortina) && !trackInPlaylist {
             trackHistory = [track]
-            poller.triggerPlaylistFetch()
+            activeSource.triggerPlaylistFetch()
             displayState = DisplayState(
                 mode: .playing,
                 currentTrack: track,

@@ -86,7 +86,9 @@ struct StatusPane: View {
             Image(systemName: appState.watchdogActive ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
                 .foregroundColor(appState.watchdogActive ? .orange : .green)
                 .font(.system(size: 12))
-            Text(appState.watchdogActive ? "Music.app unreachable" : "Polling OK")
+            Text(appState.watchdogActive
+                ? "\(appState.settings.selectedPlayer.displayName) unreachable"
+                : (appState.settings.selectedPlayer == .swinsian ? "Listening" : "Polling OK"))
                 .font(.system(size: 12))
                 .foregroundColor(appState.watchdogActive ? .orange : .secondary)
         }

@@ -130,3 +130,5 @@ final class MusicPoller {
         }
     }
 }
+
+extension MusicPoller: MusicPlayerSource {}

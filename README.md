@@ -19,6 +19,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 - **Mirror mode** — live preview of the presentation window in the control window
 - **Display labels** — customisable "CORTINA", "COMING UP", and idle message text
 - **Idle message** — optional text shown when nothing is playing
+- **Player Source** — choose Music.app (default, full playlist lookahead and tanda counting) or Swinsian (real-time push notifications; playlist lookahead and "Coming Up" during cortinas are unavailable)
 
 ---
 
@@ -27,7 +28,8 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 | Requirement | Detail |
 |---|---|
 | macOS | 13 Ventura or later |
-| Music.app | Must be running and playing from a playlist |
+| Music.app | Required when using Music.app as the player source (default). Must be running and playing from a playlist. |
+| Swinsian | Required only if selecting Swinsian as the player source in Settings › Player. |
 | Xcode Command Line Tools | `xcode-select --install` — no full Xcode needed |
 
 ---
@@ -37,7 +39,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v1.0.3.zip`
+2. Download `TangoDisplay-v1.1.0.zip`
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -123,6 +125,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v1.1.0
+- **New:** Swinsian is now supported as an alternative player source. Select Music.app or Swinsian in **Settings › Player**. Swinsian uses real-time push notifications instead of polling. Note: playlist lookahead and the "Coming Up" next-tanda preview during cortinas are unavailable with Swinsian — tanda counting falls back to track history.
 
 ### v1.0.3
 - **Fix:** Display labels ("CORTINA", "COMING UP", idle message) now update immediately on the presentation window when saved, instead of requiring a restart. Edited via the Display tab with a **Save** button and an unsaved-changes indicator.
