@@ -6,6 +6,7 @@ import TangoDisplayCore
 enum MusicPlayerChoice: String, CaseIterable, Identifiable {
     case musicApp = "musicApp"
     case swinsian = "swinsian"
+    case embrace  = "embrace"
 
     var id: String { rawValue }
 
@@ -13,6 +14,7 @@ enum MusicPlayerChoice: String, CaseIterable, Identifiable {
         switch self {
         case .musicApp: return "Music.app"
         case .swinsian: return "Swinsian"
+        case .embrace:  return "Embrace"
         }
     }
 }

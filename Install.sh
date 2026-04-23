@@ -60,18 +60,18 @@ cat > "$CONTENTS/Info.plist" <<EOF
   <key>CFBundleIconFile</key>
   <string>icon</string>
   <key>CFBundleVersion</key>
-  <string>5</string>
+  <string>6</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.1.0</string>
+  <string>1.2.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>NSHighResolutionCapable</key>
   <true/>
-  <!-- Required for reading Music.app track data via AppleScript -->
+  <!-- Required for reading track data via AppleScript (Music.app, Embrace) -->
   <key>NSAppleEventsUsageDescription</key>
-  <string>TangoDisplay reads the currently playing track from Music to show it on the dancer display.</string>
+  <string>TangoDisplay reads the currently playing track from Music.app, Swinsian, or Embrace to show it on the dancer display.</string>
   <!-- Required for global hotkeys (⌘⇧O/P/R) -->
   <key>NSInputMonitoringUsageDescription</key>
   <string>TangoDisplay uses global keyboard shortcuts so you can trigger overrides and pauses without switching windows.</string>
@@ -91,7 +91,7 @@ cp -R "$APP_DIR" "$DEST"
 echo "Installed: $DEST"
 echo ""
 echo "== Notes =="
-echo "  • On first launch, macOS will ask permission to control Music.app."
+echo "  • On first launch, macOS will ask permission to control Music.app or Embrace."
 echo "  • For global hotkeys (⌘⇧O/P/R), grant Input Monitoring access in:"
 echo "    System Settings › Privacy & Security › Input Monitoring"
 echo "  • If Gatekeeper blocks launch: right-click the app › Open"

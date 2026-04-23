@@ -73,6 +73,7 @@ final class AppState: ObservableObject {
         switch choice {
         case .musicApp: return MusicPoller()
         case .swinsian: return SwinsianMonitor()
+        case .embrace:  return EmbracMonitor()
         }
     }
 
