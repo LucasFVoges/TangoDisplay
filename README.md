@@ -2,7 +2,7 @@
 
 A native macOS menu-bar app that shows a clean, fullscreen dancer display on an external monitor at milongas. It polls Music.app every 2 seconds, automatically detects cortinas, and shows track info — artist, title, genre, and tanda position.
 
-![TangoDisplay in action](docs/screenshots/feature-dancer-display.png)
+![TangoDisplay in action](docs/screenshots/DisplayCoverImage.png)
 
 ---
 
