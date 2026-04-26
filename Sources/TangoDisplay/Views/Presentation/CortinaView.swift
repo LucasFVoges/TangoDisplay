@@ -43,6 +43,13 @@ struct CortinaView: View {
                         .lineLimit(2)
                         .minimumScaleFactor(0.5)
                         .multilineTextAlignment(.center)
+
+                    if profile.showYear, let year = next.year {
+                        Text(String(year))
+                            .font(profile.yearFont)
+                            .foregroundColor(profile.yearSwiftUIColor)
+                            .multilineTextAlignment(.center)
+                    }
                 }
                 .padding(.horizontal, 60)
             }

@@ -27,6 +27,14 @@ struct PlayingView: View {
                     .minimumScaleFactor(0.5)
             }
 
+            // Year (below artist, optional)
+            if profile.showYear, let year = state.currentTrack?.year {
+                Text(String(year))
+                    .font(profile.yearFont)
+                    .foregroundColor(profile.yearSwiftUIColor)
+                    .multilineTextAlignment(.center)
+            }
+
             // Title (medium, secondary)
             if let title = state.currentTrack?.title, !title.isEmpty {
                 Text(title)

@@ -88,10 +88,14 @@ final class SwinsianMonitor {
               !uuid.isEmpty
         else { return nil }
 
-        let title  = info["title"]  as? String ?? ""
-        let artist = info["artist"] as? String ?? ""
-        let genre  = info["genre"]  as? String ?? ""
-        return Track(title: title, artist: artist, genre: genre, persistentID: uuid)
+        let title   = info["title"]  as? String ?? ""
+        let artist  = info["artist"] as? String ?? ""
+        let genre   = info["genre"]  as? String ?? ""
+        let yearRaw = (info["year"] as? NSNumber)?.intValue
+                   ?? Int(info["year"] as? String ?? "")
+                   ?? 0
+        let year    = yearRaw > 0 ? yearRaw : nil
+        return Track(title: title, artist: artist, genre: genre, persistentID: uuid, year: year)
     }
 }
 

@@ -45,6 +45,7 @@ struct AppearanceSettingsView: View {
                 colorRow("Artist",        hex: $working.artistColor)
                 colorRow("Title",         hex: $working.titleColor)
                 colorRow("Genre/label",   hex: $working.genreColor)
+                colorRow("Year",          hex: $working.yearColor)
                 colorRow("Track counter", hex: $working.trackCounterColor)
             } header: {
                 Text("Colors")
@@ -126,6 +127,11 @@ struct AppearanceSettingsView: View {
                         bold: $working.titleFontBold,  italic: $working.titleFontItalic)
                 fontRow("Genre",  name: $working.genreFontName,  size: $working.genreFontSize,
                         bold: $working.genreFontBold,  italic: $working.genreFontItalic)
+                Toggle("Show Year", isOn: $working.showYear)
+                if working.showYear {
+                    fontRow("Year", name: $working.yearFontName, size: $working.yearFontSize,
+                            bold: $working.yearFontBold, italic: $working.yearFontItalic)
+                }
             } header: {
                 Text("Fonts")
                     .foregroundColor(ControlTheme.accent)

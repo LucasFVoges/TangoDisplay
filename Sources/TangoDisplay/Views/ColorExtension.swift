@@ -33,6 +33,7 @@ extension AppearanceProfile {
     var titleSwiftUIColor: Color         { Color(hex: titleColor) }
     var artistSwiftUIColor: Color        { Color(hex: artistColor) }
     var genreSwiftUIColor: Color         { Color(hex: genreColor) }
+    var yearSwiftUIColor: Color          { Color(hex: yearColor) }
     var trackCounterSwiftUIColor: Color  { Color(hex: trackCounterColor) }
 
     func font(name: String, size: Double, bold: Bool, italic: Bool) -> Font {
@@ -49,4 +50,5 @@ extension AppearanceProfile {
     var titleFont: Font  { font(name: titleFontName,  size: titleFontSize,  bold: titleFontBold,  italic: titleFontItalic) }
     var artistFont: Font { font(name: artistFontName, size: artistFontSize, bold: artistFontBold, italic: artistFontItalic) }
     var genreFont: Font  { font(name: genreFontName,  size: genreFontSize,  bold: genreFontBold,  italic: genreFontItalic) }
+    var yearFont: Font   { font(name: yearFontName,   size: yearFontSize,   bold: yearFontBold,   italic: yearFontItalic) }
 }

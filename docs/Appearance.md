@@ -25,6 +25,7 @@ Set the color of each element on the dancer display:
 | **Artist** | The large artist/orchestra name text |
 | **Title** | The track title text |
 | **Genre/label** | The smaller genre or record label line |
+| **Year** | The recording year (e.g. 1952) — only shown when **Show Year** is enabled |
 | **Track counter** | The "Track X of X" text in the corner |
 
 Click any color swatch to open the macOS color picker.
@@ -60,7 +61,7 @@ Configure the typeface, size, and style for each text element:
 | **B** | Bold |
 | *I* | Italic |
 
-The three rows are **Artist**, **Title**, and **Genre**.
+The rows are **Artist**, **Title**, **Genre**, and **Year**. Year only appears when **Show Year** is enabled — toggle it on with the **Show Year** switch above the Year row.
 
 ---
 

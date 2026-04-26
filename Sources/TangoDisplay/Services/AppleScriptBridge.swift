@@ -20,21 +20,21 @@ final class AppleScriptBridge {
 
     private let queue = DispatchQueue(label: "com.tangodisplay.applescript", qos: .utility)
 
-    /// Returns list: [name, artist, genre, persistentID, playerStateString]
+    /// Returns list: [name, artist, genre, persistentID, year, playerStateString]
     private static let trackScriptSource = """
         tell application "Music"
             try
                 if player state is playing then
                     set t to current track
-                    return {name of t, artist of t, genre of t, persistent ID of t, "playing"}
+                    return {name of t, artist of t, genre of t, persistent ID of t, year of t, "playing"}
                 else if player state is paused then
                     set t to current track
-                    return {name of t, artist of t, genre of t, persistent ID of t, "paused"}
+                    return {name of t, artist of t, genre of t, persistent ID of t, year of t, "paused"}
                 else
-                    return {"", "", "", "", "stopped"}
+                    return {"", "", "", "", 0, "stopped"}
                 end if
             on error
-                return {"", "", "", "", "stopped"}
+                return {"", "", "", "", 0, "stopped"}
             end try
         end tell
         """
@@ -55,7 +55,7 @@ final class AppleScriptBridge {
                 set i to 0
                 repeat with t in allTracks
                     set i to i + 1
-                    set trackList to trackList & {{name of t, artist of t, genre of t, persistent ID of t}}
+                    set trackList to trackList & {{name of t, artist of t, genre of t, persistent ID of t, year of t}}
                     if persistent ID of t is currentTrackID then
                         set foundIndex to i
                     end if
@@ -147,25 +147,27 @@ final class AppleScriptBridge {
 
     // MARK: - Descriptor parsing
 
-    /// Parses a list descriptor: [name, artist, genre, persistentID, stateString]
+    /// Parses a list descriptor: [name, artist, genre, persistentID, year, stateString]
     private static func parseTrackDescriptor(_ d: NSAppleEventDescriptor) -> (Track?, PlayerState) {
-        let stateRaw = d.atIndex(5)?.stringValue ?? "stopped"
+        let stateRaw = d.atIndex(6)?.stringValue ?? "stopped"
         let state = PlayerState(rawValue: stateRaw) ?? .stopped
 
         if state == .stopped {
             return (nil, .stopped)
         }
 
-        let title  = d.atIndex(1)?.stringValue ?? ""
-        let artist = d.atIndex(2)?.stringValue ?? ""
-        let genre  = d.atIndex(3)?.stringValue ?? ""
-        let pid    = d.atIndex(4)?.stringValue ?? ""
+        let title   = d.atIndex(1)?.stringValue ?? ""
+        let artist  = d.atIndex(2)?.stringValue ?? ""
+        let genre   = d.atIndex(3)?.stringValue ?? ""
+        let pid     = d.atIndex(4)?.stringValue ?? ""
+        let yearRaw = d.atIndex(5)?.int32Value ?? 0
+        let year    = yearRaw > 0 ? Int(yearRaw) : nil
 
         if pid.isEmpty && title.isEmpty {
             return (nil, .stopped)
         }
 
-        return (Track(title: title, artist: artist, genre: genre, persistentID: pid), state)
+        return (Track(title: title, artist: artist, genre: genre, persistentID: pid, year: year), state)
     }
 
     /// Parses: {currentIndex (int), [[name, artist, genre, pid], ...]}
@@ -182,11 +184,13 @@ final class AppleScriptBridge {
 
         for i in 1...count {
             guard let item = trackList.atIndex(i) else { continue }
-            let title  = item.atIndex(1)?.stringValue ?? ""
-            let artist = item.atIndex(2)?.stringValue ?? ""
-            let genre  = item.atIndex(3)?.stringValue ?? ""
-            let pid    = item.atIndex(4)?.stringValue ?? ""
-            tracks.append(Track(title: title, artist: artist, genre: genre, persistentID: pid))
+            let title   = item.atIndex(1)?.stringValue ?? ""
+            let artist  = item.atIndex(2)?.stringValue ?? ""
+            let genre   = item.atIndex(3)?.stringValue ?? ""
+            let pid     = item.atIndex(4)?.stringValue ?? ""
+            let yearRaw = item.atIndex(5)?.int32Value ?? 0
+            let year    = yearRaw > 0 ? Int(yearRaw) : nil
+            tracks.append(Track(title: title, artist: artist, genre: genre, persistentID: pid, year: year))
         }
 
         // Bounds-check: 1-based AppleScript index must fit the array

@@ -17,11 +17,17 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var genreFontSize: Double
     public var genreFontBold: Bool
     public var genreFontItalic: Bool
+    public var showYear: Bool
+    public var yearFontName: String
+    public var yearFontSize: Double
+    public var yearFontBold: Bool
+    public var yearFontItalic: Bool
 
     public var backgroundColor: String
     public var titleColor: String
     public var artistColor: String
     public var genreColor: String
+    public var yearColor: String
     public var trackCounterColor: String
 
     public var transitionStyle: TransitionStyle
@@ -41,10 +47,14 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 artistFontBold: Bool = false, artistFontItalic: Bool = false,
                 genreFontName: String = "System", genreFontSize: Double = 36,
                 genreFontBold: Bool = false, genreFontItalic: Bool = false,
+                showYear: Bool = false,
+                yearFontName: String = "System", yearFontSize: Double = 36,
+                yearFontBold: Bool = false, yearFontItalic: Bool = false,
                 backgroundColor: String = "#000000",
                 titleColor: String = "#FFFFFF",
                 artistColor: String = "#FFFFFF",
                 genreColor: String = "#AAAAAA",
+                yearColor: String = "#AAAAAA",
                 trackCounterColor: String = "#AAAAAA",
                 transitionStyle: TransitionStyle = .fade,
                 transitionDuration: Double = 0.4,
@@ -68,10 +78,16 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.genreFontSize = genreFontSize
         self.genreFontBold = genreFontBold
         self.genreFontItalic = genreFontItalic
+        self.showYear = showYear
+        self.yearFontName = yearFontName
+        self.yearFontSize = yearFontSize
+        self.yearFontBold = yearFontBold
+        self.yearFontItalic = yearFontItalic
         self.backgroundColor = backgroundColor
         self.titleColor = titleColor
         self.artistColor = artistColor
         self.genreColor = genreColor
+        self.yearColor = yearColor
         self.trackCounterColor = trackCounterColor
         self.transitionStyle = transitionStyle
         self.transitionDuration = transitionDuration
@@ -100,10 +116,16 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         genreFontSize        = try c.decode(Double.self,           forKey: .genreFontSize)
         genreFontBold        = try c.decodeIfPresent(Bool.self,    forKey: .genreFontBold)     ?? false
         genreFontItalic      = try c.decodeIfPresent(Bool.self,    forKey: .genreFontItalic)   ?? false
+        showYear             = try c.decodeIfPresent(Bool.self,    forKey: .showYear)          ?? false
+        yearFontName         = try c.decodeIfPresent(String.self,  forKey: .yearFontName)      ?? "System"
+        yearFontSize         = try c.decodeIfPresent(Double.self,  forKey: .yearFontSize)      ?? 36
+        yearFontBold         = try c.decodeIfPresent(Bool.self,    forKey: .yearFontBold)      ?? false
+        yearFontItalic       = try c.decodeIfPresent(Bool.self,    forKey: .yearFontItalic)    ?? false
         backgroundColor      = try c.decode(String.self,          forKey: .backgroundColor)
         titleColor           = try c.decode(String.self,          forKey: .titleColor)
         artistColor          = try c.decode(String.self,          forKey: .artistColor)
         genreColor           = try c.decode(String.self,          forKey: .genreColor)
+        yearColor            = try c.decodeIfPresent(String.self,  forKey: .yearColor)         ?? "#AAAAAA"
         trackCounterColor    = try c.decodeIfPresent(String.self, forKey: .trackCounterColor) ?? "#AAAAAA"
         transitionStyle      = try c.decode(TransitionStyle.self, forKey: .transitionStyle)
         transitionDuration   = try c.decode(Double.self,          forKey: .transitionDuration)

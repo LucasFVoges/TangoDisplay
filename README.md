@@ -1,6 +1,6 @@
 # TangoDisplay
 
-A native macOS menu-bar app that shows a clean, fullscreen dancer display on an external monitor at milongas. It polls Music.app every 2 seconds, automatically detects cortinas, and shows track info — artist, title, genre, and tanda position.
+A native macOS menu-bar app that shows a clean, fullscreen dancer display on an external monitor at milongas. It polls Music.app every 2 seconds, automatically detects cortinas, and shows track info — artist, title, genre, year, and tanda position.
 
 ![TangoDisplay in action](docs/screenshots/DisplayCoverImage.png)
 
@@ -8,7 +8,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 
 ## Features
 
-- **Live track display** — artist, title, genre/label, and track counter (e.g. Track 2 of 4) on the dancer screen
+- **Live track display** — artist, title, genre/label, year, and track counter (e.g. Track 2 of 4) on the dancer screen
 - **Cortina detection** — configurable allowlist (cortina genres) and denylist (dance genres) with partial matching; shows a "CORTINA" overlay automatically
 - **Coming-up preview** — displays the next tanda's genre and artist before it starts
 - **Multi-monitor support** — sends the presentation window to any connected display; move and toggle fullscreen from the control window
@@ -40,7 +40,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v1.5.0.zip`
+2. Download `TangoDisplay-v1.6.0.zip`
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -126,6 +126,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v1.6.0
+- **New:** Year is now an optional display field. Enable **Show Year** in the Appearance tab to show the recording year on the dancer screen. Year has its own font and color controls. Supported for all three player sources — Music.app, Swinsian, and Embrace. Music.app and Embrace also show the next track's year in the cortina "Coming Up" preview.
 
 ### v1.5.0
 - **Embrace — full Music.app parity:** Embrace now enumerates the full setlist via AppleScript, bringing it to full parity with Music.app. Tanda totals (e.g. Track 2 of 4) are now read directly from the playlist, and the "Coming Up" cortina preview correctly skips any queued cortinas to show the first dance track of the next tanda.
