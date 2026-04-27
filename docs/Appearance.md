@@ -49,6 +49,20 @@ Use Scale + Horizontal + Vertical to frame exactly the part of the image you wan
 
 ---
 
+## Album Artwork
+
+| Control | Description |
+|---|---|
+| **Display album artwork where available** | Toggle artwork display on/off |
+| **Opacity** | 0 % = invisible, 100 % = fully opaque |
+| **Scale** | 1× = natural size; increase to fill more of the screen |
+| **Horizontal offset** | Move the artwork left (negative) or right (positive) |
+| **Vertical offset** | Move the artwork up (negative) or down (positive) |
+
+Artwork is fetched automatically from the playing track for all three player sources — Music.app, Swinsian, and Embrace. It fades in and out in sync with track transitions using the same transition style and duration configured above. When no artwork is available the display falls back gracefully (nothing is shown in that layer).
+
+---
+
 ## Fonts
 
 Configure the typeface, size, and style for each text element:
