@@ -22,7 +22,7 @@ At the bottom of the preview area:
 
 | Button | Shortcut | What it does |
 |---|---|---|
-| **Force Poll** | `⌘⇧R` | Immediately re-reads Music.app instead of waiting for the next 2s interval |
+| **Force Poll** | `⌘⇧R` | Immediately triggers a Music.app re-read, bypassing the normal notification/fallback-poll cycle |
 | **Override…** | `⌘⇧O` | Opens a dialog to manually set what text appears on the display |
 | **Pause Display** | `⌘⇧P` | Freezes the dancer screen; pressing again resumes live updates |
 

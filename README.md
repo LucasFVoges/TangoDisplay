@@ -1,6 +1,6 @@
 # TangoDisplay
 
-A native macOS menu-bar app that shows a clean, fullscreen dancer display on an external monitor at milongas. It polls Music.app every 2 seconds, automatically detects cortinas, and shows track info — artist, title, genre, year, and tanda position.
+A native macOS menu-bar app that shows a clean, fullscreen dancer display on an external monitor at milongas. It monitors Music.app in real time via system notifications, with AppleScript polling as a fallback, automatically detects cortinas, and shows track info — artist, title, genre, year, and tanda position.
 
 ![TangoDisplay in action](docs/screenshots/DisplayCoverImage.png)
 
@@ -118,7 +118,7 @@ The project has three SPM targets with no external dependencies:
 
 Key design decisions:
 - `NSAppleScript` runs on a dedicated background serial queue (avoids blocking the main thread)
-- Playlist lookahead is fetched on every cortina transition (for accurate "Coming Up" info) and also refreshed every 20 seconds (every 10th 2s poll)
+- Playlist lookahead is fetched on every cortina transition (for accurate "Coming Up" info) and also refreshed every 20 seconds via the periodic fallback poll
 - Profiles are stored as JSON in `~/Library/Application Support/TangoDisplay/profiles/`
 - Colors are stored as hex strings in `AppearanceProfile` (Codable)
 - `ObservableObject` + `@Published` throughout (macOS 13 target predates `@Observable`)
