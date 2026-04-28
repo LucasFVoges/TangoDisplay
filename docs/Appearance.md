@@ -68,7 +68,7 @@ Use Scale + Horizontal + Vertical to frame exactly the part of the image you wan
 
 ## Fonts
 
-![Appearance — fonts and singer](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-singer-v190.png)
+![Appearance — fonts and singer](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-singer-v200.png)
 
 Configure the typeface, size, and style for each text element:
 
@@ -80,7 +80,7 @@ Configure the typeface, size, and style for each text element:
 | **B** | Bold |
 | *I* | Italic |
 
-The rows are **Artist**, **Title**, **Genre**, **Year**, and **Singer**. Year only appears when **Show Year** is enabled — toggle it on with the **Show Year** switch above the Year row. Singer only appears when **Include comments as singer** is enabled — toggle it on in the same section.
+The rows are **Artist**, **Title**, **Genre**, **Year**, and **Singer**. Year only appears when **Show Year** is enabled — toggle it on with the **Show Year** switch above the Year row. Singer only appears when **Include comments as singer** is enabled — toggle it on in the same section. When the singer line is on, a second toggle — **Show singer during cortina** — controls whether the vocalist name also appears in the cortina "Coming Up" preview.
 
 ---
 
