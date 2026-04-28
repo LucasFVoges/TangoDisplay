@@ -6,7 +6,7 @@ The **Appearance** tab controls everything about how the dancer display looks �
 
 ## Transition
 
-![Appearance — transitions and colors](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-colors-v160.png)
+![Appearance — transitions and colors](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-transition-v190.png)
 
 | Setting | Description |
 |---|---|
@@ -27,6 +27,7 @@ Set the color of each element on the dancer display:
 | **Genre/label** | The smaller genre or record label line |
 | **Year** | The recording year (e.g. 1952) — only shown when **Show Year** is enabled |
 | **Track counter** | The "Track X of X" text in the corner |
+| **Singer** | The vocalist/singer line (only shown when **Include comments as singer** is enabled) |
 
 Click any color swatch to open the macOS color picker.
 
@@ -34,7 +35,7 @@ Click any color swatch to open the macOS color picker.
 
 ## Background Image
 
-![Appearance — background image and fonts](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-fonts-v160.png)
+![Appearance — background image and fonts](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-background-v190.png)
 
 | Control | Description |
 |---|---|
@@ -50,6 +51,8 @@ Use Scale + Horizontal + Vertical to frame exactly the part of the image you wan
 ---
 
 ## Album Artwork
+
+![Appearance — album artwork](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-artwork-v190.png)
 
 | Control | Description |
 |---|---|
@@ -75,7 +78,7 @@ Configure the typeface, size, and style for each text element:
 | **B** | Bold |
 | *I* | Italic |
 
-The rows are **Artist**, **Title**, **Genre**, and **Year**. Year only appears when **Show Year** is enabled — toggle it on with the **Show Year** switch above the Year row.
+The rows are **Artist**, **Title**, **Genre**, **Year**, and **Singer**. Year only appears when **Show Year** is enabled — toggle it on with the **Show Year** switch above the Year row. Singer only appears when **Include comments as singer** is enabled — toggle it on in the same section.
 
 ---
 

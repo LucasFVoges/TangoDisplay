@@ -62,7 +62,7 @@ cat > "$CONTENTS/Info.plist" <<EOF
   <key>CFBundleVersion</key>
   <string>13</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.8.0</string>
+  <string>1.9.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSMinimumSystemVersion</key>

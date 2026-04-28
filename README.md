@@ -20,6 +20,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 - **Display labels** — customisable "CORTINA", "COMING UP", and idle message text
 - **Idle message** — optional text shown when nothing is playing
 - **Album Artwork** — display the current track's artwork on the dancer screen; configurable opacity, scale, and position. Supported for Music.app, Swinsian, and Embrace.
+- **Singer line** — optionally display the vocalist name (read from the track's Comments field) below the title; configurable font and color. Supported for Music.app, Swinsian, and Embrace.
 - **Player Source** — choose Music.app (default), Swinsian (real-time notifications; no lookahead), or Embrace (full playlist lookahead and tanda counting via AppleScript — full parity with Music.app as of v1.5.0)
 - **Update indicator** — a small dot in the sidebar shows when a newer release is available; click to open the releases page
 
@@ -42,7 +43,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v1.8.0.zip`
+2. Download `TangoDisplay-v1.9.0.zip`
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -128,6 +129,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v1.9.0
+- **New:** Singer/vocalist line. DJs who store the singer's name in the track's Comments field can now display it on the dancer screen, directly below the track title. Enable **Include comments as singer** in the Appearance tab › Fonts section. The singer line has its own font (family, size, bold, italic) and color controls, and is saved with your appearance profile. Supported for all three player sources — Music.app, Swinsian, and Embrace. For Swinsian, the comment is fetched via a short async AppleScript call when the notification doesn't include it.
 
 ### v1.8.0
 - **New:** Update indicator in the sidebar. A small dot in the bottom-left corner of the sidebar shows your current version. It stays green when you're up to date, and turns red with a clickable link to the latest release when a newer version is available on GitHub. The check runs silently on launch and every hour; no action is taken if the device is offline.
