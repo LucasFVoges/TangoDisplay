@@ -7,18 +7,15 @@ import TangoDisplayCore
 struct PreviewPane: View {
     @EnvironmentObject var appState: AppState
 
-    private let previewWidth: CGFloat = 480
-    private let previewHeight: CGFloat = 270
-    private let targetWidth: CGFloat = 1920
+    private let targetWidth:  CGFloat = 1920
     private let targetHeight: CGFloat = 1080
-    private var scale: CGFloat { previewWidth / targetWidth }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("PREVIEW")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 2)
+        GeometryReader { geo in
+            let scale = min(geo.size.width / targetWidth,
+                            geo.size.height / targetHeight)
+            let pw = targetWidth  * scale
+            let ph = targetHeight * scale
 
             ZStack {
                 // Mirror the PresentationView at scale
@@ -27,16 +24,17 @@ struct PreviewPane: View {
                     .environmentObject(appState.settings)
                     .frame(width: targetWidth, height: targetHeight)
                     .scaleEffect(scale, anchor: .topLeading)
-                    .frame(width: previewWidth, height: previewHeight, alignment: .topLeading)
+                    .frame(width: pw, height: ph, alignment: .topLeading)
                     .allowsHitTesting(false)
                     .clipped()
 
                 // Border
                 RoundedRectangle(cornerRadius: 4)
                     .strokeBorder(Color.secondary.opacity(0.4), lineWidth: 1)
-                    .frame(width: previewWidth, height: previewHeight)
+                    .frame(width: pw, height: ph)
             }
+            .frame(width: geo.size.width, height: geo.size.height)
         }
-        .padding()
+        .padding(8)
     }
 }

@@ -51,8 +51,8 @@ struct CortinaView: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    if profile.showSinger && profile.showSingerDuringCortina,
-                       let singer = next.comment, !singer.isEmpty {
+                    if profile.showSingerDuringCortina,
+                       let singer = profile.singerValue(from: next), !singer.isEmpty {
                         Text(singer)
                             .font(profile.singerFont)
                             .foregroundColor(profile.singerSwiftUIColor)

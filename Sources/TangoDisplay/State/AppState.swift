@@ -43,6 +43,7 @@ final class AppState: ObservableObject {
     private var playlistCurrentIndex: Int = 0        // 0-based
     private var lastKnownNextTrack: Track? = nil     // from onNextTrackUpdate; used for Embrace cortina look-ahead
     private var lastSeenPersistentID: String = ""
+    private var lastSeenTrack: Track? = nil
     @Published private(set) var currentPlayerState: PlayerState = .stopped
     private var isPausedByUser = false               // ⌘⇧P toggle
     private var pendingStateBeforePause: DisplayState? = nil  // state snapshot for unpausing
@@ -137,6 +138,7 @@ final class AppState: ObservableObject {
         playlistTracks = nil
         playlistCurrentIndex = 0
         lastSeenPersistentID = ""
+        lastSeenTrack = nil
         currentPlayerState = .stopped
         isPausedByUser = false
         pendingStateBeforePause = nil
@@ -151,10 +153,11 @@ final class AppState: ObservableObject {
     // MARK: - Track update (core state machine)
 
     private func handleTrackUpdate(track: Track?, playerState: PlayerState) {
-        // Skip duplicate polls
+        // Skip duplicate polls — but allow through if track metadata changed (e.g. albumArtist enrichment)
         let pid = track?.persistentID ?? ""
-        guard pid != lastSeenPersistentID || playerState != currentPlayerState else { return }
+        guard pid != lastSeenPersistentID || playerState != currentPlayerState || track != lastSeenTrack else { return }
         lastSeenPersistentID = pid
+        lastSeenTrack = track
         currentPlayerState = playerState
 
         // Stopped
@@ -351,6 +354,7 @@ final class AppState: ObservableObject {
         isPausedByUser = false          // don't inherit a pre-override user-pause
         pendingStateBeforePause = nil
         lastSeenPersistentID = ""       // force re-evaluation on next poll
+        lastSeenTrack = nil
         currentPlayerState = .stopped
     }
 
@@ -365,6 +369,7 @@ final class AppState: ObservableObject {
             // while the display was frozen, so currentPlayerState is already stale and the
             // guard would permanently skip the correction poll.
             lastSeenPersistentID = ""
+            lastSeenTrack = nil
             currentPlayerState = .stopped
             displayState = DisplayState()   // idle until the poll arrives
             pollNow()                       // trigger immediately rather than waiting up to 2s

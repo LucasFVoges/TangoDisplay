@@ -179,9 +179,8 @@ struct ControlView: View {
             VStack(spacing: 0) {
                 if appState.settings.mirrorMode {
                     PreviewPane()
-                        .frame(minWidth: 400)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                Divider()
                 StatusPane(showingOverride: $showingOverride)
                     .frame(maxWidth: .infinity)
             }

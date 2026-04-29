@@ -171,8 +171,14 @@ struct AppearanceSettingsView: View {
                     fontRow("Year", name: $working.yearFontName, size: $working.yearFontSize,
                             bold: $working.yearFontBold, italic: $working.yearFontItalic)
                 }
-                Toggle("Include comments as singer", isOn: $working.showSinger)
+                Toggle("Include singer", isOn: $working.showSinger)
                 if working.showSinger {
+                    Picker("Source", selection: $working.singerSource) {
+                        ForEach(SingerSource.allCases, id: \.self) { source in
+                            Text(source.displayName).tag(source)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                     fontRow("Singer", name: $working.singerFontName, size: $working.singerFontSize,
                             bold: $working.singerFontBold, italic: $working.singerFontItalic)
                     Toggle("Show singer during cortina", isOn: $working.showSingerDuringCortina)

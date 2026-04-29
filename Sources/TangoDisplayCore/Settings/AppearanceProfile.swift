@@ -47,8 +47,9 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var albumArtworkOffsetX: Double   // points, horizontal pan
     public var albumArtworkOffsetY: Double   // points, vertical pan
 
-    // Singer line (displays track comment field below the title)
+    // Singer line (displays a track metadata field below the title)
     public var showSinger: Bool
+    public var singerSource: SingerSource
     public var showSingerDuringCortina: Bool
     public var singerFontName: String
     public var singerFontSize: Double
@@ -85,6 +86,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 albumArtworkOffsetX: Double = 0.0,
                 albumArtworkOffsetY: Double = 0.0,
                 showSinger: Bool = false,
+                singerSource: SingerSource = .comments,
                 showSingerDuringCortina: Bool = false,
                 singerFontName: String = "System",
                 singerFontSize: Double = 48,
@@ -130,6 +132,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.albumArtworkOffsetX = albumArtworkOffsetX
         self.albumArtworkOffsetY = albumArtworkOffsetY
         self.showSinger = showSinger
+        self.singerSource = singerSource
         self.showSingerDuringCortina = showSingerDuringCortina
         self.singerFontName = singerFontName
         self.singerFontSize = singerFontSize
@@ -180,13 +183,22 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         albumArtworkScale       = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkScale)       ?? 1.0
         albumArtworkOffsetX     = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkOffsetX)     ?? 0.0
         albumArtworkOffsetY     = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkOffsetY)     ?? 0.0
-        showSinger              = try c.decodeIfPresent(Bool.self,    forKey: .showSinger)              ?? false
-        showSingerDuringCortina = try c.decodeIfPresent(Bool.self,    forKey: .showSingerDuringCortina) ?? false
+        showSinger              = try c.decodeIfPresent(Bool.self,         forKey: .showSinger)              ?? false
+        singerSource            = try c.decodeIfPresent(SingerSource.self, forKey: .singerSource)            ?? .comments
+        showSingerDuringCortina = try c.decodeIfPresent(Bool.self,         forKey: .showSingerDuringCortina) ?? false
         singerFontName          = try c.decodeIfPresent(String.self,  forKey: .singerFontName)          ?? "System"
         singerFontSize          = try c.decodeIfPresent(Double.self,  forKey: .singerFontSize)          ?? 48
         singerFontBold          = try c.decodeIfPresent(Bool.self,    forKey: .singerFontBold)          ?? false
         singerFontItalic        = try c.decodeIfPresent(Bool.self,    forKey: .singerFontItalic)        ?? false
         singerColor             = try c.decodeIfPresent(String.self,  forKey: .singerColor)             ?? "#AAAAAA"
+    }
+
+    public func singerValue(from track: Track) -> String? {
+        guard showSinger else { return nil }
+        switch singerSource {
+        case .comments:    return track.comment
+        case .albumArtist: return track.albumArtist
+        }
     }
 
     public static let builtIns: [AppearanceProfile] = [.classic, .modern, .highContrast]
@@ -215,6 +227,18 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         trackCounterColor: "#B3B3B3",
         transitionStyle: .cut, transitionDuration: 0.0
     )
+}
+
+public enum SingerSource: String, Codable, CaseIterable {
+    case comments    = "comments"
+    case albumArtist = "albumArtist"
+
+    public var displayName: String {
+        switch self {
+        case .comments:    "Comments"
+        case .albumArtist: "Album Artist"
+        }
+    }
 }
 
 public enum TransitionStyle: String, Codable, CaseIterable {

@@ -45,8 +45,8 @@ struct PlayingView: View {
                     .minimumScaleFactor(0.5)
             }
 
-            // Singer (from track comments field, shown below title)
-            if profile.showSinger, let singer = state.currentTrack?.comment, !singer.isEmpty {
+            // Singer (shown below title, source determined by profile.singerSource)
+            if let singer = state.currentTrack.flatMap({ profile.singerValue(from: $0) }), !singer.isEmpty {
                 Text(singer)
                     .font(profile.singerFont)
                     .foregroundColor(profile.singerSwiftUIColor)

@@ -40,22 +40,29 @@ final class SwinsianMonitor {
         end tell
         """
 
-    private static let commentScript = """
+    // Returns two lines: comment (line 1), album artist (line 2) for the current track.
+    private static let trackDetailsScript = """
         tell application "Swinsian"
             try
                 if player state is not stopped then
-                    set c to comment of current track
-                    if c is missing value then return ""
-                    return c
+                    set t to current track
+                    set c to comment of t
+                    if c is missing value then set c to ""
+                    set aa to ""
+                    try
+                        set aa to album artist of t
+                        if aa is missing value then set aa to ""
+                    end try
+                    return c & linefeed & aa
                 end if
             end try
-            return ""
+            return linefeed
         end tell
         """
 
     // Returns field-separated data for the second track in the playback queue (the
     // track that will play after the current one), or empty string if the queue has
-    // fewer than two tracks. Fields: name, artist, genre, id, year, comment.
+    // fewer than two tracks. Fields: name, artist, genre, id, year, comment, albumArtist.
     private static let nextQueueTrackScript = """
         tell application "Swinsian"
             try
@@ -66,7 +73,12 @@ final class SwinsianMonitor {
                     set yr to year of t
                     set c to comment of t
                     if c is missing value then set c to ""
-                    return (name of t) & fsep & (artist of t) & fsep & (genre of t) & fsep & (id of t) & fsep & (yr as text) & fsep & c
+                    set aa to ""
+                    try
+                        set aa to album artist of t
+                        if aa is missing value then set aa to ""
+                    end try
+                    return (name of t) & fsep & (artist of t) & fsep & (genre of t) & fsep & (id of t) & fsep & (yr as text) & fsep & c & fsep & aa
                 end tell
             end try
             return ""
@@ -135,8 +147,8 @@ final class SwinsianMonitor {
             return
         }
         onTrackUpdate?(track, .playing)
-        if track.comment == nil {
-            fetchCommentAndUpdate(baseTrack: track, state: .playing)
+        if track.comment == nil || track.albumArtist == nil {
+            fetchDetailsAndUpdate(baseTrack: track, state: .playing)
         }
         fetchAndNotifyNextTrack()
     }
@@ -147,8 +159,8 @@ final class SwinsianMonitor {
             return
         }
         onTrackUpdate?(track, .paused)
-        if track.comment == nil {
-            fetchCommentAndUpdate(baseTrack: track, state: .paused)
+        if track.comment == nil || track.albumArtist == nil {
+            fetchDetailsAndUpdate(baseTrack: track, state: .paused)
         }
     }
 
@@ -170,15 +182,20 @@ final class SwinsianMonitor {
         return Track(title: title, artist: artist, genre: genre, persistentID: uuid, year: year, comment: comment)
     }
 
-    private func fetchCommentAndUpdate(baseTrack: Track, state: PlayerState) {
+    private func fetchDetailsAndUpdate(baseTrack: Track, state: PlayerState) {
         DispatchQueue.global(qos: .utility).async { [weak self] in
             guard let self else { return }
-            let raw = self.runOsascript(Self.commentScript) ?? ""
-            let comment = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !comment.isEmpty else { return }
-            let updated = Track(title: baseTrack.title, artist: baseTrack.artist,
-                                genre: baseTrack.genre, persistentID: baseTrack.persistentID,
-                                year: baseTrack.year, comment: comment)
+            let raw = self.runOsascript(Self.trackDetailsScript) ?? "\n"
+            let lines = raw.components(separatedBy: "\n")
+            let comment     = lines.count > 0 ? lines[0].trimmingCharacters(in: .whitespacesAndNewlines) : ""
+            let albumArtist = lines.count > 1 ? lines[1].trimmingCharacters(in: .whitespacesAndNewlines) : ""
+            let updated = Track(
+                title: baseTrack.title, artist: baseTrack.artist,
+                genre: baseTrack.genre, persistentID: baseTrack.persistentID,
+                year: baseTrack.year,
+                comment:     comment.isEmpty     ? baseTrack.comment     : comment,
+                albumArtist: albumArtist.isEmpty ? baseTrack.albumArtist : albumArtist
+            )
             DispatchQueue.main.async { [weak self] in
                 self?.onTrackUpdate?(updated, state)
             }
@@ -201,16 +218,17 @@ final class SwinsianMonitor {
         guard !raw.isEmpty else { return nil }
         let sep = String(UnicodeScalar(31)!)   // ASCII unit separator
         let fields = raw.components(separatedBy: sep)
-        guard fields.count == 6 else { return nil }
-        let title   = fields[0]
-        let artist  = fields[1]
-        let genre   = fields[2]
-        let pid     = fields[3]
-        let year    = Int(fields[4])
-        let comment = fields[5].isEmpty ? nil : fields[5]
+        guard fields.count == 7 else { return nil }
+        let title       = fields[0]
+        let artist      = fields[1]
+        let genre       = fields[2]
+        let pid         = fields[3]
+        let year        = Int(fields[4])
+        let comment     = fields[5].isEmpty ? nil : fields[5]
+        let albumArtist = fields[6].isEmpty ? nil : fields[6]
         guard !title.isEmpty, !pid.isEmpty else { return nil }
         return Track(title: title, artist: artist, genre: genre,
-                     persistentID: pid, year: year, comment: comment)
+                     persistentID: pid, year: year, comment: comment, albumArtist: albumArtist)
     }
 }
 
