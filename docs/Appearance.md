@@ -6,7 +6,7 @@ The **Appearance** tab controls everything about how the dancer display looks �
 
 ## Transition
 
-![Appearance — transitions and colors](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-transition-v190.png)
+![Appearance — transitions and colors](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-transition-v240.png)
 
 | Setting | Description |
 |---|---|
@@ -40,7 +40,7 @@ Click any color swatch to open the macOS color picker.
 
 ## Field Visibility
 
-![Appearance — field visibility](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-fieldvisibility-v230.png)
+![Appearance — field visibility](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-fieldvisibility-v240.png)
 
 Control which fields are shown — independently for dance tracks and for the cortina "Coming Up" preview. Each row has two toggles: **Dance** (shown while a tanda is playing) and **Cortina** (shown in the next-track preview during a cortina).
 
@@ -68,7 +68,7 @@ A third toggle — **Show next track during cortina** — hides or shows the ent
 
 ## Album Artwork
 
-![Appearance — album artwork](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-artwork-v190.png)
+![Appearance — album artwork](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-artwork-v240.png)
 
 Configure how album artwork appears on the dancer screen. Artwork visibility is controlled per context in **Field Visibility** above — these sliders only take effect when artwork is enabled for Dance or Cortina (or both).
 
@@ -85,7 +85,7 @@ Artwork is fetched automatically from the playing track for all three player sou
 
 ## Background Image
 
-![Appearance — background image](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-background-v2-190.png)
+![Appearance — background image](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-background-v240.png)
 
 | Control | Description |
 |---|---|
@@ -102,7 +102,7 @@ Use Scale + Horizontal + Vertical to frame exactly the part of the image you wan
 
 ## Fonts
 
-![Appearance — fonts and singer](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-singer-v201.png)
+![Appearance — fonts](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-fonts-v240.png)
 
 Configure the typeface, size, and style for each text element:
 
@@ -137,7 +137,7 @@ A **Singer** font row appears below the source picker so you can set the typefac
 
 ## Text Order
 
-![Appearance — text order](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-textorder-v220.png)
+![Appearance — text order](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/appearance-textorder-v240.png)
 
 Control the vertical order in which text items appear on the dancer display. There are two independent orderings — one for dance tracks and one for the cortina "Coming Up" preview.
 
