@@ -78,6 +78,49 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var showSingerCortina:  Bool
     public var showArtworkCortina: Bool
 
+    // Cortina track display (artist/title of the cortina itself)
+    public var showCortinaTrackDuringCortina: Bool
+    public var showCortinaTrackArtist: Bool
+    public var showCortinaTrackTitle:  Bool
+
+    // Cortina label font/colour (was hardcoded to titleFont + artistColor)
+    public var cortinaLabelFontName:   String
+    public var cortinaLabelFontSize:   Double
+    public var cortinaLabelFontBold:   Bool
+    public var cortinaLabelFontItalic: Bool
+    public var cortinaLabelColor:      String
+
+    // Cortina track artist font/colour
+    public var cortinaArtistFontName:   String
+    public var cortinaArtistFontSize:   Double
+    public var cortinaArtistFontBold:   Bool
+    public var cortinaArtistFontItalic: Bool
+    public var cortinaArtistColor:      String
+
+    // Cortina track title font/colour
+    public var cortinaTitleFontName:   String
+    public var cortinaTitleFontSize:   Double
+    public var cortinaTitleFontBold:   Bool
+    public var cortinaTitleFontItalic: Bool
+    public var cortinaTitleColor:      String
+
+    // Next-up label font/colour (was hardcoded to genreFont + genreColor)
+    public var nextUpLabelFontName:   String
+    public var nextUpLabelFontSize:   Double
+    public var nextUpLabelFontBold:   Bool
+    public var nextUpLabelFontItalic: Bool
+    public var nextUpLabelColor:      String
+
+    // Idle message font/colour (was hardcoded .system(48, ultraLight) + artistColor.opacity(0.4))
+    public var idleMessageFontName:   String
+    public var idleMessageFontSize:   Double
+    public var idleMessageFontBold:   Bool
+    public var idleMessageFontItalic: Bool
+    public var idleMessageColor:      String
+
+    // Orderable items for cortina-track section
+    public var cortinaTrackItemOrder: [DisplayTextItem]
+
     public init(id: UUID, name: String, isBuiltIn: Bool,
                 titleFontName: String = "System", titleFontSize: Double = 72,
                 titleFontBold: Bool = true, titleFontItalic: Bool = false,
@@ -128,7 +171,26 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 showYearCortina: Bool = false,
                 showTitleCortina: Bool = false,
                 showSingerCortina: Bool = false,
-                showArtworkCortina: Bool = false) {
+                showArtworkCortina: Bool = false,
+                showCortinaTrackDuringCortina: Bool = false,
+                showCortinaTrackArtist: Bool = true,
+                showCortinaTrackTitle: Bool = true,
+                cortinaLabelFontName: String = "System", cortinaLabelFontSize: Double = 72,
+                cortinaLabelFontBold: Bool = false, cortinaLabelFontItalic: Bool = false,
+                cortinaLabelColor: String = "#FFFFFF",
+                cortinaArtistFontName: String = "System", cortinaArtistFontSize: Double = 96,
+                cortinaArtistFontBold: Bool = false, cortinaArtistFontItalic: Bool = false,
+                cortinaArtistColor: String = "#FFFFFF",
+                cortinaTitleFontName: String = "System", cortinaTitleFontSize: Double = 72,
+                cortinaTitleFontBold: Bool = false, cortinaTitleFontItalic: Bool = false,
+                cortinaTitleColor: String = "#FFFFFF",
+                nextUpLabelFontName: String = "System", nextUpLabelFontSize: Double = 36,
+                nextUpLabelFontBold: Bool = false, nextUpLabelFontItalic: Bool = false,
+                nextUpLabelColor: String = "#AAAAAA",
+                idleMessageFontName: String = "System", idleMessageFontSize: Double = 48,
+                idleMessageFontBold: Bool = false, idleMessageFontItalic: Bool = false,
+                idleMessageColor: String = "#FFFFFF",
+                cortinaTrackItemOrder: [DisplayTextItem] = [.cortinaLabel, .cortinaArtist, .cortinaTitle]) {
         self.id = id
         self.name = name
         self.isBuiltIn = isBuiltIn
@@ -190,6 +252,35 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.showTitleCortina   = showTitleCortina
         self.showSingerCortina  = showSingerCortina
         self.showArtworkCortina = showArtworkCortina
+        self.showCortinaTrackDuringCortina = showCortinaTrackDuringCortina
+        self.showCortinaTrackArtist = showCortinaTrackArtist
+        self.showCortinaTrackTitle  = showCortinaTrackTitle
+        self.cortinaLabelFontName   = cortinaLabelFontName
+        self.cortinaLabelFontSize   = cortinaLabelFontSize
+        self.cortinaLabelFontBold   = cortinaLabelFontBold
+        self.cortinaLabelFontItalic = cortinaLabelFontItalic
+        self.cortinaLabelColor      = cortinaLabelColor
+        self.cortinaArtistFontName   = cortinaArtistFontName
+        self.cortinaArtistFontSize   = cortinaArtistFontSize
+        self.cortinaArtistFontBold   = cortinaArtistFontBold
+        self.cortinaArtistFontItalic = cortinaArtistFontItalic
+        self.cortinaArtistColor      = cortinaArtistColor
+        self.cortinaTitleFontName   = cortinaTitleFontName
+        self.cortinaTitleFontSize   = cortinaTitleFontSize
+        self.cortinaTitleFontBold   = cortinaTitleFontBold
+        self.cortinaTitleFontItalic = cortinaTitleFontItalic
+        self.cortinaTitleColor      = cortinaTitleColor
+        self.nextUpLabelFontName   = nextUpLabelFontName
+        self.nextUpLabelFontSize   = nextUpLabelFontSize
+        self.nextUpLabelFontBold   = nextUpLabelFontBold
+        self.nextUpLabelFontItalic = nextUpLabelFontItalic
+        self.nextUpLabelColor      = nextUpLabelColor
+        self.idleMessageFontName   = idleMessageFontName
+        self.idleMessageFontSize   = idleMessageFontSize
+        self.idleMessageFontBold   = idleMessageFontBold
+        self.idleMessageFontItalic = idleMessageFontItalic
+        self.idleMessageColor      = idleMessageColor
+        self.cortinaTrackItemOrder = cortinaTrackItemOrder
     }
 
     // Custom decoder so existing JSON lacking the image keys still loads cleanly.
@@ -251,6 +342,9 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 decodedCortinaOrder.append(.title)
             }
         }
+        if !decodedCortinaOrder.contains(.nextUpLabel) {
+            decodedCortinaOrder.insert(.nextUpLabel, at: 0)
+        }
         cortinaItemOrder = decodedCortinaOrder
 
         // Legacy field values for migration
@@ -274,6 +368,43 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         showTitleCortina   = (try c.decodeIfPresent(Bool.self, forKey: .showTitleCortina))   ?? legacyCortinaHadTitle
         showSingerCortina  = (try c.decodeIfPresent(Bool.self, forKey: .showSingerCortina))  ?? legacyShowSingerCortina
         showArtworkCortina = (try c.decodeIfPresent(Bool.self, forKey: .showArtworkCortina)) ?? legacyShowArtwork
+
+        showCortinaTrackDuringCortina = (try c.decodeIfPresent(Bool.self, forKey: .showCortinaTrackDuringCortina)) ?? false
+        showCortinaTrackArtist        = (try c.decodeIfPresent(Bool.self, forKey: .showCortinaTrackArtist))        ?? true
+        showCortinaTrackTitle         = (try c.decodeIfPresent(Bool.self, forKey: .showCortinaTrackTitle))         ?? true
+
+        cortinaLabelFontName   = try c.decodeIfPresent(String.self, forKey: .cortinaLabelFontName)   ?? titleFontName
+        cortinaLabelFontSize   = try c.decodeIfPresent(Double.self, forKey: .cortinaLabelFontSize)   ?? titleFontSize
+        cortinaLabelFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .cortinaLabelFontBold)   ?? titleFontBold
+        cortinaLabelFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .cortinaLabelFontItalic) ?? titleFontItalic
+        cortinaLabelColor      = try c.decodeIfPresent(String.self, forKey: .cortinaLabelColor)      ?? artistColor
+
+        cortinaArtistFontName   = try c.decodeIfPresent(String.self, forKey: .cortinaArtistFontName)   ?? "System"
+        cortinaArtistFontSize   = try c.decodeIfPresent(Double.self, forKey: .cortinaArtistFontSize)   ?? 96
+        cortinaArtistFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .cortinaArtistFontBold)   ?? false
+        cortinaArtistFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .cortinaArtistFontItalic) ?? false
+        cortinaArtistColor      = try c.decodeIfPresent(String.self, forKey: .cortinaArtistColor)      ?? "#FFFFFF"
+
+        cortinaTitleFontName   = try c.decodeIfPresent(String.self, forKey: .cortinaTitleFontName)   ?? "System"
+        cortinaTitleFontSize   = try c.decodeIfPresent(Double.self, forKey: .cortinaTitleFontSize)   ?? 72
+        cortinaTitleFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .cortinaTitleFontBold)   ?? false
+        cortinaTitleFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .cortinaTitleFontItalic) ?? false
+        cortinaTitleColor      = try c.decodeIfPresent(String.self, forKey: .cortinaTitleColor)      ?? "#FFFFFF"
+
+        nextUpLabelFontName   = try c.decodeIfPresent(String.self, forKey: .nextUpLabelFontName)   ?? genreFontName
+        nextUpLabelFontSize   = try c.decodeIfPresent(Double.self, forKey: .nextUpLabelFontSize)   ?? genreFontSize
+        nextUpLabelFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .nextUpLabelFontBold)   ?? genreFontBold
+        nextUpLabelFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .nextUpLabelFontItalic) ?? genreFontItalic
+        nextUpLabelColor      = try c.decodeIfPresent(String.self, forKey: .nextUpLabelColor)      ?? genreColor
+
+        idleMessageFontName   = try c.decodeIfPresent(String.self, forKey: .idleMessageFontName)   ?? "System"
+        idleMessageFontSize   = try c.decodeIfPresent(Double.self, forKey: .idleMessageFontSize)   ?? 48
+        idleMessageFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .idleMessageFontBold)   ?? false
+        idleMessageFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .idleMessageFontItalic) ?? false
+        idleMessageColor      = try c.decodeIfPresent(String.self, forKey: .idleMessageColor)      ?? artistColor
+
+        cortinaTrackItemOrder = try c.decodeIfPresent([DisplayTextItem].self, forKey: .cortinaTrackItemOrder)
+            ?? [.cortinaLabel, .cortinaArtist, .cortinaTitle]
     }
 
     public func singerValue(from track: Track) -> String? {
@@ -313,14 +444,22 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
 
 public enum DisplayTextItem: String, Codable, CaseIterable {
     case genre, artist, year, title, singer
+    case cortinaLabel   // "CORTINA" heading text
+    case cortinaArtist  // cortina track's own artist
+    case cortinaTitle   // cortina track's own title
+    case nextUpLabel    // "COMING UP" heading text
 
     public var displayName: String {
         switch self {
-        case .genre:  "Genre"
-        case .artist: "Artist"
-        case .year:   "Year"
-        case .title:  "Title"
-        case .singer: "Singer"
+        case .genre:        "Genre"
+        case .artist:       "Artist"
+        case .year:         "Year"
+        case .title:        "Title"
+        case .singer:       "Singer"
+        case .cortinaLabel: "Cortina Label"
+        case .cortinaArtist:"Cortina Artist"
+        case .cortinaTitle: "Cortina Title"
+        case .nextUpLabel:  "Next Up Label"
         }
     }
 }

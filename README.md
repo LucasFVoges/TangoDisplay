@@ -19,10 +19,10 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 - **Mirror mode** — live preview of the presentation window in the control window
 - **Display labels** — customisable "CORTINA", "COMING UP", and idle message text
 - **Idle message** — optional text shown when nothing is playing
-- **Field visibility** — independent show/hide toggles for every display field (Genre, Artist, Year, Title, Singer, Artwork) with separate **Dance** and **Cortina** columns. Hides the entire "Coming Up" next-track preview during cortinas with a single toggle.
+- **Field visibility** — independent show/hide toggles for every display field (Genre, Artist, Year, Title, Singer, Artwork) with separate **Dance** and **Cortina** columns. Hides the entire "Coming Up" next-track preview during cortinas with a single toggle. A second **Show cortina track during cortina** section lets you optionally display the playing cortina's own artist and/or title.
 - **Album Artwork** — display the current track's artwork on the dancer screen; enable per context (dance tracks, cortinas, or both) with configurable opacity, scale, and position. Supported for Music.app, Swinsian, and Embrace.
 - **Singer line** — display the vocalist name; choose the source — **Comments** or **Album Artist** — via the Singer Source picker in Appearance. Configurable font and color. Enable per context (dance tracks, cortinas, or both). Supported for Music.app, Swinsian, and Embrace.
-- **Text order** — drag items into any order you like for the dance-track display and the cortina "Coming Up" preview independently, per appearance profile
+- **Text order** — drag items into any order you like for three independent sections — dance-track display, cortina track display, and the cortina "Coming Up" preview — per appearance profile
 - **Player Source** — choose Music.app (default), Swinsian (real-time notifications; queue-based look-ahead), or Embrace (full playlist lookahead and tanda counting via AppleScript — full parity with Music.app as of v1.5.0)
 - **Update indicator** — a small dot in the sidebar shows when a newer release is available; click to open the releases page
 
@@ -45,7 +45,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v2.3.0-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v2.4.0-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -131,6 +131,11 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v2.4.0
+- **New (Appearance):** Cortina track display. A new **Show cortina track during cortina** toggle in the Field Visibility section lets you display the playing cortina's own artist and/or title on the cortina screen. Two sub-toggles — **Cortina Artist** and **Cortina Title** — give independent control. Off by default; existing profiles migrate automatically.
+- **New (Appearance):** Cortina track item order. A third sub-section — **Cortinas — Cortina Track** — in the Text Order section lets you reorder the Cortina Label, Cortina Artist, and Cortina Title items independently of the dance and "Coming Up" orderings.
+- **New (Appearance):** Independent colors and fonts for five elements that were previously hardcoded: the Cortina label (was title font + artist color), the Next Up label (was genre font/color), Cortina Artist, Cortina Title, and the Idle message (was ultra-light artist color). Each has its own color swatch and font row in the Colors and Fonts sections.
 
 ### v2.3.0
 - **New (Appearance):** Field Visibility. A new **Field Visibility** section in the Appearance tab provides independent show/hide toggles for every display field — Genre, Artist, Year, Title, Singer, and Artwork — with separate **Dance** and **Cortina** columns. This replaces the old global Show Year, Include Singer, and Show Singer During Cortina toggles. A **Show next track during cortina** toggle also lets you hide the entire "Coming Up" preview section during cortinas. Existing profiles migrate automatically — old toggle states are preserved as the starting values for the new per-type flags.

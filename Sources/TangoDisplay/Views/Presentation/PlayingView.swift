@@ -54,6 +54,8 @@ struct PlayingView: View {
                             .lineLimit(2)
                             .minimumScaleFactor(0.5)
                     }
+                case .cortinaLabel, .cortinaArtist, .cortinaTitle, .nextUpLabel:
+                    EmptyView()
                 }
             }
 

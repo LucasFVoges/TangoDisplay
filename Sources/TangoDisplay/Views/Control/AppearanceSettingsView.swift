@@ -48,6 +48,11 @@ struct AppearanceSettingsView: View {
                 colorRow("Year",          hex: $working.yearColor)
                 colorRow("Singer",        hex: $working.singerColor)
                 colorRow("Track counter", hex: $working.trackCounterColor)
+                colorRow("Cortina label", hex: $working.cortinaLabelColor)
+                colorRow("Next up label", hex: $working.nextUpLabelColor)
+                colorRow("Cortina artist", hex: $working.cortinaArtistColor)
+                colorRow("Cortina title",  hex: $working.cortinaTitleColor)
+                colorRow("Idle message",  hex: $working.idleMessageColor)
             } header: {
                 Text("Colors")
                     .foregroundColor(ControlTheme.accent)
@@ -57,7 +62,10 @@ struct AppearanceSettingsView: View {
                 HStack {
                     Text("").frame(maxWidth: .infinity, alignment: .leading)
                     Text("Dance").frame(width: 70, alignment: .center).foregroundColor(.secondary).font(.subheadline)
-                    Text("Cortina").frame(width: 70, alignment: .center).foregroundColor(.secondary).font(.subheadline)
+                    Text("Cortina")
+                        .frame(width: 70, alignment: .center)
+                        .foregroundColor(working.showNextTrackDuringCortina ? .secondary : .secondary.opacity(0.4))
+                        .font(.subheadline)
                 }
                 visibilityRow("Genre",   dance: $working.showGenreDance,   cortina: $working.showGenreCortina)
                 visibilityRow("Artist",  dance: $working.showArtistDance,  cortina: $working.showArtistCortina)
@@ -65,6 +73,14 @@ struct AppearanceSettingsView: View {
                 visibilityRow("Title",   dance: $working.showTitleDance,   cortina: $working.showTitleCortina)
                 visibilityRow("Singer",  dance: $working.showSingerDance,  cortina: $working.showSingerCortina)
                 visibilityRow("Artwork", dance: $working.showArtworkDance, cortina: $working.showArtworkCortina)
+
+                Divider()
+
+                Toggle("Show cortina track during cortina", isOn: $working.showCortinaTrackDuringCortina)
+                cortinaOnlyVisibilityRow("Cortina Artist", cortina: $working.showCortinaTrackArtist,
+                                        enabled: working.showCortinaTrackDuringCortina)
+                cortinaOnlyVisibilityRow("Cortina Title",  cortina: $working.showCortinaTrackTitle,
+                                        enabled: working.showCortinaTrackDuringCortina)
 
                 Divider()
 
@@ -183,6 +199,13 @@ struct AppearanceSettingsView: View {
             }
 
             Section {
+                fontRow("Cortina Lbl", name: $working.cortinaLabelFontName, size: $working.cortinaLabelFontSize,
+                        bold: $working.cortinaLabelFontBold, italic: $working.cortinaLabelFontItalic)
+                fontRow("Next Up Lbl", name: $working.nextUpLabelFontName,  size: $working.nextUpLabelFontSize,
+                        bold: $working.nextUpLabelFontBold,  italic: $working.nextUpLabelFontItalic)
+                fontRow("Idle Msg",    name: $working.idleMessageFontName,  size: $working.idleMessageFontSize,
+                        bold: $working.idleMessageFontBold,  italic: $working.idleMessageFontItalic)
+                Divider()
                 fontRow("Artist", name: $working.artistFontName, size: $working.artistFontSize,
                         bold: $working.artistFontBold, italic: $working.artistFontItalic)
                 fontRow("Title",  name: $working.titleFontName,  size: $working.titleFontSize,
@@ -199,6 +222,11 @@ struct AppearanceSettingsView: View {
                 .pickerStyle(.segmented)
                 fontRow("Singer", name: $working.singerFontName, size: $working.singerFontSize,
                         bold: $working.singerFontBold, italic: $working.singerFontItalic)
+                Divider()
+                fontRow("Cortina Art.", name: $working.cortinaArtistFontName, size: $working.cortinaArtistFontSize,
+                        bold: $working.cortinaArtistFontBold, italic: $working.cortinaArtistFontItalic)
+                fontRow("Cortina Ttl.", name: $working.cortinaTitleFontName,  size: $working.cortinaTitleFontSize,
+                        bold: $working.cortinaTitleFontBold,  italic: $working.cortinaTitleFontItalic)
             } header: {
                 Text("Fonts")
                     .foregroundColor(ControlTheme.accent)
@@ -211,6 +239,17 @@ struct AppearanceSettingsView: View {
                         .foregroundColor(.secondary)
                         .padding(.bottom, 4)
                     orderRows(items: $working.danceItemOrder)
+                }
+
+                Divider()
+                    .padding(.vertical, 4)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Cortinas — Cortina Track")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 4)
+                    orderRows(items: $working.cortinaTrackItemOrder)
                 }
 
                 Divider()
@@ -309,11 +348,21 @@ struct AppearanceSettingsView: View {
         }
     }
 
+    private func cortinaOnlyVisibilityRow(_ label: String, cortina: Binding<Bool>, enabled: Bool) -> some View {
+        HStack {
+            Text(label).frame(maxWidth: .infinity, alignment: .leading)
+            Spacer().frame(width: 70)
+            Toggle("", isOn: cortina).labelsHidden().frame(width: 70, alignment: .center)
+                .disabled(!enabled)
+        }
+    }
+
     private func visibilityRow(_ label: String, dance: Binding<Bool>, cortina: Binding<Bool>) -> some View {
         HStack {
             Text(label).frame(maxWidth: .infinity, alignment: .leading)
             Toggle("", isOn: dance).labelsHidden().frame(width: 70, alignment: .center)
             Toggle("", isOn: cortina).labelsHidden().frame(width: 70, alignment: .center)
+                .disabled(!working.showNextTrackDuringCortina)
         }
     }
 
@@ -334,7 +383,7 @@ struct AppearanceSettingsView: View {
                          bold: Binding<Bool>, italic: Binding<Bool>) -> some View {
         HStack {
             Text(label)
-                .frame(width: 60, alignment: .leading)
+                .frame(width: 85, alignment: .leading)
             Picker("", selection: name) {
                 ForEach(availableFonts, id: \.self) { family in
                     Text(family).tag(family)

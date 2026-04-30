@@ -11,8 +11,8 @@ struct IdleView: View {
             // Idle message
             if !settings.idleMessage.isEmpty {
                 Text(settings.idleMessage)
-                    .font(.system(size: 48, weight: .ultraLight))
-                    .foregroundColor(profile.artistSwiftUIColor.opacity(0.4))
+                    .font(profile.idleMessageFont)
+                    .foregroundColor(profile.idleMessageSwiftUIColor)
                     .multilineTextAlignment(.center)
                     .padding()
             }

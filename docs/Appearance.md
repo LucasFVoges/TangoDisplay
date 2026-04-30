@@ -28,6 +28,11 @@ Set the color of each element on the dancer display:
 | **Year** | The recording year (e.g. 1952) |
 | **Track counter** | The "Track X of X" text in the corner |
 | **Singer** | The vocalist/singer line |
+| **Cortina label** | The "CORTINA" heading text on the cortina screen |
+| **Next up label** | The "COMING UP" heading text in the cortina preview |
+| **Cortina artist** | The cortina track's own artist (when cortina track display is enabled) |
+| **Cortina title** | The cortina track's own title (when cortina track display is enabled) |
+| **Idle message** | The text shown when nothing is playing |
 
 Click any color swatch to open the macOS color picker.
 
@@ -48,7 +53,16 @@ Control which fields are shown — independently for dance tracks and for the co
 | **Singer** | Off | Off |
 | **Artwork** | Off | Off |
 
-A second toggle — **Show next track during cortina** — hides or shows the entire "Coming Up" next-track preview section. When off, the cortina screen shows only the cortina label with no preview content at all.
+A second block — **Show cortina track during cortina** — lets you display the playing cortina's own track information on the cortina screen. When enabled, two sub-toggles appear:
+
+| Field | Description |
+|---|---|
+| **Cortina Artist** | The artist/orchestra of the playing cortina track |
+| **Cortina Title** | The title of the playing cortina track |
+
+These sub-toggles are only active when **Show cortina track during cortina** is on. Off by default.
+
+A third toggle — **Show next track during cortina** — hides or shows the entire "Coming Up" next-track preview section. When off, the cortina screen shows only the cortina label (and cortina track info if enabled) with no preview content at all.
 
 ---
 
@@ -100,7 +114,13 @@ Configure the typeface, size, and style for each text element:
 | **B** | Bold |
 | *I* | Italic |
 
-The rows are **Artist**, **Title**, **Genre**, **Year**, and **Singer**. Whether each field is shown on the dancer screen is controlled in **Field Visibility** above.
+The section is divided into three groups:
+
+**Label rows** (at the top): **Cortina Lbl** (the "CORTINA" heading), **Next Up Lbl** (the "COMING UP" heading), and **Idle Msg** (the idle-state message). These were previously hardcoded — they now have independent font and color control.
+
+**Dance track rows**: **Artist**, **Title**, **Genre**, **Year**, and **Singer**. Whether each field is shown is controlled in **Field Visibility** above.
+
+**Cortina track rows** (at the bottom): **Cortina Art.** and **Cortina Ttl.** — the font for the cortina track's own artist and title when cortina track display is enabled.
 
 ### Singer Source
 
@@ -124,13 +144,16 @@ Control the vertical order in which text items appear on the dancer display. The
 | Section | What it controls |
 |---|---|
 | **Dance Tracks** | Order of items on the main display while a tanda is playing |
-| **Cortinas — Coming Up** | Order of items in the next-tanda preview shown during cortinas |
+| **Cortinas — Cortina Track** | Order of Cortina Label, Cortina Artist, and Cortina Title on the cortina screen |
+| **Cortinas — Coming Up** | Order of Next Up Label and next-tanda preview items during cortinas |
 
 Each section lists the available items. Use the **↑** and **↓** chevron buttons on the right of each row to move items up or down. Changes take effect on the dancer display immediately.
 
 **Dance Tracks** items: Genre, Artist, Year, Title, Singer (default order matches the original layout)
 
-**Cortinas — Coming Up** items: Genre, Artist, Year, Singer — plus **Title** is available here too if you want to show the next track's title in the cortina preview (off by default)
+**Cortinas — Cortina Track** items: Cortina Label, Cortina Artist, Cortina Title (default order: label first, then artist, then title). Only visible when **Show cortina track during cortina** is enabled in Field Visibility.
+
+**Cortinas — Coming Up** items: Next Up Label, Genre, Artist, Year, Singer, Title. The Next Up Label ("COMING UP" heading) is now an orderable item — move it anywhere in the preview block.
 
 ---
 
