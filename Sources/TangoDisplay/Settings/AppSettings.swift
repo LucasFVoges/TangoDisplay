@@ -140,10 +140,20 @@ final class AppSettings: ObservableObject {
 
     func displayLabel(for genre: String) -> String {
         let trimmed = genre.trimmingCharacters(in: .whitespaces)
+        let lower = trimmed.lowercased()
+
+        // Exact case-insensitive match
         if let match = denylistGenres.first(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }),
            let override = denylistLabelOverrides[match], !override.isEmpty {
             return override
         }
+
+        // Partial (prefix) match — mirrors CortinaDetector's hasPrefix($0 + " ") logic
+        if let match = denylistPartialMatchGenres.first(where: { lower.hasPrefix($0.lowercased() + " ") }),
+           let override = denylistLabelOverrides[match], !override.isEmpty {
+            return override
+        }
+
         return trimmed
     }
 

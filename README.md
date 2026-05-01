@@ -45,7 +45,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v2.5.0-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v2.5.1-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -131,6 +131,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v2.5.1
+- **Fix (Cortina Rules):** Display label overrides now apply when a track genre matches a denylist entry via partial match (e.g. genre `Milonga (Alt)` with denylist entry `Milonga` + partial match on now correctly shows the label `Milonga` instead of the raw genre string).
 
 ### v2.5.0
 - **New (Cortina Rules):** Display label override for denylist genres. Each denylist entry now has an optional label field. When filled in, the label is shown on the dancer screen instead of the raw genre tag — useful for libraries that use compound genre tags like `Tango: Vals` or `Tango: Milonga` but want cleaner on-screen text. Applies to both the dance-track view and the cortina "Coming Up" preview. Detection logic is unaffected.
