@@ -444,6 +444,19 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
                     self.reportPlaylist()
                     self.onNextTrackUpdate?(self.setlist.entry(after: firstQueued.id)?.track)
                 }
+                // A reorder may have inserted a queued track before our queued-but-not-yet-loaded
+                // current entry. Promote the new first-queued entry to be the current one.
+                if let id = self.currentEntryID, self.audioFile == nil, !self.isActivePlaying,
+                   entries.first(where: { $0.id == id })?.state == .queued,
+                   let firstQueued = entries.first(where: { $0.state == .queued }),
+                   firstQueued.id != id {
+                    self.currentEntryID = firstQueued.id
+                    self.elapsed = 0
+                    self.duration = firstQueued.duration ?? 0
+                    self.reportCurrentState()
+                    self.reportPlaylist()
+                    self.onNextTrackUpdate?(self.setlist.entry(after: firstQueued.id)?.track)
+                }
                 // Always report so AppState recalculates tanda position on any entries
                 // change, including pure reorders that don't trigger any branch above.
                 self.reportPlaylist()
