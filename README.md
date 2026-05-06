@@ -47,7 +47,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.2.0-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.3.0-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -133,6 +133,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.3.0
+- **Fix (JRiver):** Artist tag now correctly shows the track Artist instead of Album Artist. Previously the poller substituted Album Artist into the Artist field whenever it was present, causing it to display as the Artist on screen.
 
 ### v3.2.0
 - **New (JRiver):** Zone selection. DJs running multiple JRiver zones (e.g. Player + Prelistening) can now pin TangoDisplay to a specific zone. Go to **Settings › Player › Zone**, click **Refresh** to discover available zones, and select the one to monitor. The pre-listening zone is then ignored entirely. Defaults to *Active (follows current)* — no behaviour change for single-zone setups.
