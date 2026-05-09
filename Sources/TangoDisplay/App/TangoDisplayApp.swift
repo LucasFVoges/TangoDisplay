@@ -23,6 +23,16 @@ struct TangoDisplayApp: App {
                 }
         }
         .defaultSize(width: 700, height: 540)
+        .commands {
+            CommandGroup(after: .help) {
+                Button("Tango Display Website") {
+                    NSWorkspace.shared.open(URL(string: "https://tangodisplay.com")!)
+                }
+                Button("Facebook Group") {
+                    NSWorkspace.shared.open(URL(string: "https://www.facebook.com/groups/tangodisplay")!)
+                }
+            }
+        }
 
         // Presentation window — WindowGroup allows dragging to external monitors
         WindowGroup(id: "presentation") {

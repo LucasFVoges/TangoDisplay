@@ -136,7 +136,7 @@ struct CortinaSettingsView: View {
                     ))
                     .toggleStyle(.checkbox)
                     .fixedSize()
-                    .help("Also matches genres starting with \"\(genre) \" (e.g. \"\(genre) Instrumental\")")
+                    .help("Also matches genres containing \"\(genre)\" anywhere (e.g. \"\(genre) Instrumental\", \"Alt \(genre)\")")
                     Button {
                         settings.denylistGenres.remove(at: idx)
                     } label: {

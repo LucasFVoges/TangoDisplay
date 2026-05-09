@@ -8,7 +8,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 
 ## Features
 
-- **Built-In Player** — native audio player: build a setlist by dragging tracks from Finder, Music.app, or Swinsian; full playback controls with accidental-stop protection; Fade & Stop / Fade & Continue cortina transitions; 5-band EQ (±12 dB); audio output routing to any macOS device; optional duplicate track protection; auto-gap silence detection pads the gap between tracks to a configurable minimum; setlist persists across restarts. No Music.app required.
+- **Built-In Player** — native audio player: build a setlist by dragging tracks from Finder, Music.app, or Swinsian; full playback controls with accidental-stop protection; Fade & Stop / Fade & Continue cortina transitions; real-time dual-channel level meter with peak hold and clip detection; stereo balance control; 5-band EQ (±12 dB); audio output routing to any macOS device; optional duplicate track protection; auto-gap silence detection pads the gap between tracks to a configurable minimum; setlist persists across restarts. No Music.app required.
 - **Live track display** — artist, title, genre/label, year, and track counter (e.g. Track 2 of 4) on the dancer screen
 - **Cortina detection** — configurable allowlist (cortina genres) and denylist (dance genres) with partial matching; shows a "CORTINA" overlay automatically. Optional per-entry **display label** lets you show a clean label (e.g. `Vals`) instead of the raw genre tag (e.g. `Tango: Vals`)
 - **Coming-up preview** — displays the next tanda's genre and artist before it starts
@@ -47,7 +47,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.5.2-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.6.0-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -133,6 +133,13 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.6.0
+- **New (Built-In Player):** Real-time stereo level meter. A dual-channel (L/R) bar-graph meter is now displayed in the player controls. Each channel shows RMS level with a green → yellow → red gradient, a peak-hold indicator that holds for 2 seconds then decays, and a dB scale (-0, -3, -6, -12, -24 dB). Peak markers turn red when clipping is detected; tap the meter to reset the clip indicator.
+- **New (Built-In Player):** Stereo balance control. A **Balance** button in the Setlist toolbar opens a popover with a left/right balance slider. The readout shows "Centre", "L N%", or "R N%" at a glance; a **Centre** button resets to balanced. The setting persists across sessions.
+- **Fix (Built-In Player):** Numeric ID3 genre tags (e.g. `(13)`, `(17)`, or plain `13`) are now resolved to their text names. Previously, tracks tagged with a numeric TCON value displayed the raw number as the genre on screen and in cortina detection.
+- **Fix (Cortina Rules):** Partial genre matching now uses substring matching instead of prefix-only matching. A denylist entry for `Tango` will now catch `Non Tango Music` (word appears mid-string), not only `Tango Instrumental` (word at start). The tooltip in Cortina Settings is updated to reflect this.
+- **New:** Help menu now includes **Tango Display Website** and **Facebook Group** links for quick access to support and community resources.
 
 ### v3.5.2
 - **Improvement (Built-In Player):** Album artwork in the player controls is now displayed as a dedicated side panel sized to match the height of the playback controls, replacing the previous 70 pt corner overlay. When no track artwork is available a `SetlistLogo` placeholder fills the panel so the layout stays consistent.

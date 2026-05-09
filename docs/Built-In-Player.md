@@ -74,18 +74,19 @@ The setlist persists across app restarts — it is saved automatically to Applic
 
 The player controls sit above the track list.
 
-> **Screenshot placeholder:** player controls area showing transport, seek bar, fade buttons, volume, eye button, and artwork
+> **Screenshot placeholder:** player controls area showing level meter, transport, seek bar, fade buttons, volume, eye button, and artwork
 
-Working left to right:
+The controls are arranged in three columns with a seek bar and volume row below:
 
+- **Level meter** — dual-channel (L/R) bar graph on the left side of the controls panel. Gradient bars show real-time RMS level from green (quiet) through yellow to red (loud). White peak-hold markers latch for 2 seconds then decay; they turn red when clipping is detected. Tap the meter to reset clip indicators. A dB scale (-0, -3, -6, -12, -24) runs alongside.
 - **Eye button** — scrolls the track list to highlight the currently playing track
 - **Track info** — title and artist of the current track
+- **Transport button** — large central play/stop button (see states below)
+- **Fade buttons** — Fade & Stop and Fade & Continue (see below)
 - **Seek bar** — drag to jump to any position in the track. When "After…" mark-as-played timing is active, a small vertical marker line shows the threshold position
 - **Time display** — elapsed and remaining time
 - **Volume slider** — master volume for the built-in player (0–100%)
-- **Transport button** — large central play/stop button (see states below)
-- **Fade buttons** — Fade & Stop and Fade & Continue (see below)
-- **Album artwork** — extracted from the audio file, shown top-right (70×70, rounded)
+- **Artwork panel** — current track artwork, sized to match the height of the controls column. Falls back to the SetlistLogo placeholder when no artwork is embedded in the file.
 
 ### Transport Button States
 
@@ -195,6 +196,18 @@ Three places in the UI reflect auto-gap state:
 | **Filled green wave icon** on a track row | Auto-gap silence was successfully scheduled before this track |
 | **Outlined grey wave icon** on a track row | Auto-gap was skipped or ignored for this track (first track with "Skip gap before first track" on, or per-track override active) |
 | *(no icon)* | Auto-gap not applicable to this track |
+
+---
+
+## Stereo Balance
+
+Click the **Balance** button (dial icon) in the Setlist toolbar to open the balance popover.
+
+- Drag the slider left to shift audio towards the left channel, or right to shift it towards the right.
+- The readout above the slider shows **Centre**, **L N%**, or **R N%** depending on the current position.
+- Click **Centre** to snap back to balanced (0).
+
+The balance setting persists across app restarts. The Balance button is disabled when the built-in player is not active.
 
 ---
 

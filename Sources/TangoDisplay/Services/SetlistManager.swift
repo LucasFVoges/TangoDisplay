@@ -283,6 +283,20 @@ final class SetlistManager: ObservableObject {
             return nil
         }
 
+        // Resolves raw ID3 TCON values that encode genre as a number rather than text.
+        // Handles "(N)", "(N)Text", and plain "N" forms; passes real text through unchanged.
+        func resolveID3Genre(_ raw: String?) -> String? {
+            guard let raw, !raw.isEmpty else { return nil }
+            if raw.hasPrefix("("), let close = raw.firstIndex(of: ")") {
+                let numStr = String(raw[raw.index(after: raw.startIndex)..<close])
+                let text = String(raw[raw.index(after: close)...]).trimmingCharacters(in: .whitespaces)
+                if !text.isEmpty { return text }
+                if let n = Int(numStr), n >= 0, n < id3GenreNames.count { return id3GenreNames[n] }
+            }
+            if let n = Int(raw), n >= 0, n < id3GenreNames.count { return id3GenreNames[n] }
+            return raw
+        }
+
         // M4A predefined genre: `gnre` atom stores an integer (ID3v1 index + 1).
         // Music.app uses this when the user picks from its genre dropdown rather than typing.
         func predefinedGenreName() -> String? {
@@ -300,12 +314,12 @@ final class SetlistManager: ObservableObject {
         let artist = string(for: .commonIdentifierArtist) ?? ""
         // Genre: search across all common tagging conventions; empty values are treated as absent
         // so a stale empty tag in one keyspace doesn't block lookup in the next.
-        let genre = string(for: .id3MetadataContentType)   // MP3: TCON frame
-            ?? string(for: .iTunesMetadataUserGenre)         // M4A: ©gen text atom
-            ?? predefinedGenreName()                         // M4A: gnre integer atom (Music.app dropdown)
-            ?? string(forRawKey: "genre")                    // FLAC/Vorbis comment
-            ?? string(forRawKey: "tcon")                     // raw ID3 key fallback
-            ?? SetlistManager.genreFromAudioToolbox(url)     // AIFF ID3 chunk (AVFoundation misses these)
+        let genre = resolveID3Genre(string(for: .id3MetadataContentType))   // MP3: TCON frame (resolved)
+            ?? string(for: .iTunesMetadataUserGenre)                          // M4A: ©gen text atom
+            ?? predefinedGenreName()                                           // M4A: gnre integer atom (Music.app dropdown)
+            ?? string(forRawKey: "genre")                                      // FLAC/Vorbis comment
+            ?? resolveID3Genre(string(forRawKey: "tcon"))                      // raw ID3 key fallback (resolved)
+            ?? SetlistManager.genreFromAudioToolbox(url)                       // AIFF ID3 chunk (AVFoundation misses these)
             ?? ""
 
         let year: Int? = string(for: .id3MetadataYear).flatMap { Int($0) }

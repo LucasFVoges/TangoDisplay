@@ -5,7 +5,7 @@ public struct CortinaDetector {
     public var allowlistGenres: Set<String>         // pre-lowercased cortina genres
     public var useDenylist: Bool
     public var denylistGenres: Set<String>          // pre-lowercased dance genres (inverted logic)
-    public var denylistPartialGenres: Set<String>   // pre-lowercased genres that also use prefix matching
+    public var denylistPartialGenres: Set<String>   // pre-lowercased genres that also use substring matching
 
     public init(useAllowlist: Bool, allowlistGenres: Set<String>,
                 useDenylist: Bool, denylistGenres: Set<String>,
@@ -24,8 +24,8 @@ public struct CortinaDetector {
         if useAllowlist && allowlistGenres.contains(g) { return true }
         if useDenylist {
             let exactMatch = denylistGenres.contains(g) || denylistPartialGenres.contains(g)
-            let prefixMatch = denylistPartialGenres.contains { g.hasPrefix($0 + " ") }
-            if !(exactMatch || prefixMatch) { return true }
+            let partialMatch = denylistPartialGenres.contains { g.hasPrefix($0 + " ") || g.contains(" " + $0) }
+            if !(exactMatch || partialMatch) { return true }
         }
         return false
     }

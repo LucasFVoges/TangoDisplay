@@ -10,6 +10,9 @@ struct PlayerControlsView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(alignment: .top, spacing: 12) {
+                LevelMeterView(meter: player.levelMeter)
+                    .frame(maxHeight: .infinity)
+
                 VStack(spacing: 10) {
                     trackInfo
                     transportButtons
@@ -23,6 +26,7 @@ struct PlayerControlsView: View {
                 artworkPanel
                     .frame(width: artworkHeight, height: artworkHeight)
             }
+            .fixedSize(horizontal: false, vertical: true)
             seekBar
             volumeRow
         }
@@ -60,58 +64,59 @@ struct PlayerControlsView: View {
     // MARK: - Subviews
 
     private var trackInfo: some View {
-        VStack(spacing: 3) {
-            if let track = appState.displayState.currentTrack {
-                HStack(spacing: 8) {
-                    Text(track.title)
-                        .font(.system(size: 14, weight: .semibold))
-                        .lineLimit(1)
-                    if appState.currentPlayerState == .playing || appState.currentPlayerState == .pauseArmed {
-                        Button {
-                            onScrollToCurrentTrack?()
-                        } label: {
-                            Image(systemName: "eye")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Scroll setlist to current track")
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                Text(track.artist)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+        let track = appState.displayState.currentTrack
+        return VStack(spacing: 3) {
+            HStack(spacing: 8) {
+                Text(track?.title ?? "No track loaded")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(track == nil ? .secondary : .primary)
                     .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                Text("No track loaded")
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                if track != nil,
+                   appState.currentPlayerState == .playing || appState.currentPlayerState == .pauseArmed {
+                    Button {
+                        onScrollToCurrentTrack?()
+                    } label: {
+                        Image(systemName: "eye")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Scroll setlist to current track")
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .center)
+            Text(track?.artist ?? " ")
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
     }
 
     private var transportButtons: some View {
-        Button {
-            switch appState.currentPlayerState {
-            case .playing, .pauseArmed: appState.transportPause()
-            case .paused, .stopped:     appState.transportPlay()
-            }
-        } label: {
-            let (icon, color): (String, Color) = {
+        HStack(spacing: 10) {
+            Spacer()
+            Button {
                 switch appState.currentPlayerState {
-                case .stopped:    return ("play.circle.fill",  ControlTheme.accent)
-                case .playing:    return ("stop.circle.fill",  ControlTheme.accent)
-                case .pauseArmed: return ("stop.circle.fill",  .red)
-                case .paused:     return ("play.circle.fill",  .orange)
+                case .playing, .pauseArmed: appState.transportPause()
+                case .paused, .stopped:     appState.transportPlay()
                 }
-            }()
-            Image(systemName: icon)
-                .font(.system(size: 40))
-                .foregroundColor(color)
+            } label: {
+                let (icon, color): (String, Color) = {
+                    switch appState.currentPlayerState {
+                    case .stopped:    return ("play.circle.fill",  ControlTheme.accent)
+                    case .playing:    return ("stop.circle.fill",  ControlTheme.accent)
+                    case .pauseArmed: return ("stop.circle.fill",  .red)
+                    case .paused:     return ("play.circle.fill",  .orange)
+                    }
+                }()
+                Image(systemName: icon)
+                    .font(.system(size: 40))
+                    .foregroundColor(color)
+            }
+            .buttonStyle(.plain)
+            Spacer()
         }
-        .buttonStyle(.plain)
     }
 
     private var seekBar: some View {

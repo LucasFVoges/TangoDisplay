@@ -29,13 +29,24 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         set { playerNode.volume = max(0, min(1, newValue)) }
     }
 
+    private var _balance: Float = 0
+    var balance: Float {
+        get { _balance }
+        set { _balance = max(-1, min(1, newValue)); applyBalance(_balance) }
+    }
+
     // MARK: - Private — audio engine
 
     private let audioEngine = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
     private let eq = AVAudioUnitEQ(numberOfBands: 5)
+    private let balanceMixer = AVAudioMixerNode()
     private var audioFile: AVAudioFile?
     private var seekOffset: Double = 0
+
+    // MARK: - Level meter
+
+    private(set) var levelMeter: AudioLevelMeter!
 
     // MARK: - Private — state
 
@@ -61,9 +72,12 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         self.settings = settings
         super.init()
         setupAudioEngine()
+        levelMeter = AudioLevelMeter(mixerNode: audioEngine.mainMixerNode)
         playerNode.volume = max(0, min(1, volume))
         applyOutputDevice(settings.builtInOutputDeviceUID)
         applyEQGains(settings.eqGains)
+        _balance = max(-1, min(1, settings.builtInBalance))
+        applyBalance(_balance)
     }
 
     // MARK: - Audio engine setup
@@ -71,8 +85,10 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
     private func setupAudioEngine() {
         audioEngine.attach(playerNode)
         audioEngine.attach(eq)
+        audioEngine.attach(balanceMixer)
         audioEngine.connect(playerNode, to: eq, format: nil)
-        audioEngine.connect(eq, to: audioEngine.mainMixerNode, format: nil)
+        audioEngine.connect(eq, to: balanceMixer, format: nil)
+        audioEngine.connect(balanceMixer, to: audioEngine.mainMixerNode, format: nil)
 
         let frequencies: [Float]          = [60, 250, 1000, 4000, 12000]
         let filterTypes: [AVAudioUnitEQFilterType] = [.lowShelf, .parametric, .parametric, .parametric, .highShelf]
@@ -100,11 +116,16 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
             if let file = self.audioFile {
                 self.audioEngine.disconnectNodeOutput(self.playerNode)
                 self.audioEngine.disconnectNodeOutput(self.eq)
+                self.audioEngine.disconnectNodeOutput(self.balanceMixer)
                 self.audioEngine.connect(self.playerNode, to: self.eq, format: file.processingFormat)
-                self.audioEngine.connect(self.eq, to: self.audioEngine.mainMixerNode, format: file.processingFormat)
+                self.audioEngine.connect(self.eq, to: self.balanceMixer, format: file.processingFormat)
+                self.audioEngine.connect(self.balanceMixer, to: self.audioEngine.mainMixerNode, format: file.processingFormat)
             }
             do {
                 try self.audioEngine.start()
+                self.levelMeter.engineDidReconfigure()
+                self.levelMeter.reinstallTap()
+                self.applyBalance(self._balance)
             } catch {
                 os_log(.error, "TangoDisplay: engine restart failed: %{public}@", error.localizedDescription)
             }
@@ -141,6 +162,10 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         }
     }
 
+    private func applyBalance(_ pan: Float) {
+        balanceMixer.pan = pan
+    }
+
     // MARK: - MusicPlayerSource lifecycle
 
     func start() {
@@ -154,6 +179,8 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         isCurrentEntryMarkedAsPlayed = false
         isActivePlaying = false
         playerNode.stop()
+        audioEngine.stop()
+        levelMeter.reset()
         audioFile = nil
         elapsed = 0
         duration = 0
@@ -364,9 +391,12 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
             audioEngine.stop()
             audioEngine.disconnectNodeOutput(playerNode)
             audioEngine.disconnectNodeOutput(eq)
+            audioEngine.disconnectNodeOutput(balanceMixer)
             audioEngine.connect(playerNode, to: eq, format: file.processingFormat)
-            audioEngine.connect(eq, to: audioEngine.mainMixerNode, format: file.processingFormat)
+            audioEngine.connect(eq, to: balanceMixer, format: file.processingFormat)
+            audioEngine.connect(balanceMixer, to: audioEngine.mainMixerNode, format: file.processingFormat)
             try audioEngine.start()
+            levelMeter.reinstallTap()
 
             // Auto-gap: schedule silence before the file if needed.
             // nextTrackSilenceAtStart is pre-populated by the background analysis from the previous track's loadEntry.
@@ -493,6 +523,11 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         settings.$eqBand2Gain.sink { [weak self] v in self?.eq.bands[2].gain = v }.store(in: &cancellables)
         settings.$eqBand3Gain.sink { [weak self] v in self?.eq.bands[3].gain = v }.store(in: &cancellables)
         settings.$eqBand4Gain.sink { [weak self] v in self?.eq.bands[4].gain = v }.store(in: &cancellables)
+
+        settings.$builtInBalance
+            .dropFirst()
+            .sink { [weak self] v in self?.balance = v }
+            .store(in: &cancellables)
 
         setlist.$entries
             .receive(on: DispatchQueue.main)

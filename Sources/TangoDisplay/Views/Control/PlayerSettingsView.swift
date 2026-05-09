@@ -6,16 +6,43 @@ struct PlayerSettingsView: View {
 
     @State private var jriverZones: [JRiverZone] = []
     @State private var isLoadingZones = false
+    @State private var pendingPlayerChoice: MusicPlayerChoice? = nil
+    @State private var showClearSetlistAlert = false
 
     var body: some View {
         Form {
             Section {
-                Picker("Music player", selection: $settings.selectedPlayer) {
+                Picker("Music player", selection: Binding(
+                    get: { settings.selectedPlayer },
+                    set: { newChoice in
+                        guard newChoice != settings.selectedPlayer else { return }
+                        if settings.selectedPlayer == .builtIn && !appState.setlist.entries.isEmpty {
+                            pendingPlayerChoice = newChoice
+                            showClearSetlistAlert = true
+                        } else {
+                            settings.selectedPlayer = newChoice
+                        }
+                    }
+                )) {
                     ForEach(MusicPlayerChoice.allCases) { choice in
                         Text(choice.displayName).tag(choice)
                     }
                 }
                 .pickerStyle(.radioGroup)
+                .alert("Clear Setlist?", isPresented: $showClearSetlistAlert) {
+                    Button("Switch Player", role: .destructive) {
+                        if let choice = pendingPlayerChoice {
+                            appState.setlist.clear()
+                            settings.selectedPlayer = choice
+                        }
+                        pendingPlayerChoice = nil
+                    }
+                    Button("Cancel", role: .cancel) {
+                        pendingPlayerChoice = nil
+                    }
+                } message: {
+                    Text("Switching to a different player will remove all tracks from the setlist.")
+                }
             } header: {
                 Text("Player Source")
                     .foregroundColor(ControlTheme.accent)

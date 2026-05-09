@@ -75,6 +75,9 @@ final class AppSettings: ObservableObject {
     @Published var builtInVolume: Float {
         didSet { UserDefaults.standard.set(builtInVolume, forKey: kPrefix + "builtInVolume") }
     }
+    @Published var builtInBalance: Float {
+        didSet { UserDefaults.standard.set(builtInBalance, forKey: kPrefix + "builtInBalance") }
+    }
 
     @Published var builtInFadeDuration: Double {
         didSet { UserDefaults.standard.set(builtInFadeDuration, forKey: kPrefix + "builtInFadeDuration") }
@@ -190,6 +193,7 @@ final class AppSettings: ObservableObject {
         selectedPlayer = MusicPlayerChoice(rawValue: rawPlayer) ?? .musicApp
         jriverZoneID = ud.object(forKey: kPrefix + "jriverZoneID").flatMap { $0 as? Int } ?? -1
         builtInVolume = ud.object(forKey: kPrefix + "builtInVolume").flatMap { $0 as? Float } ?? 1.0
+        builtInBalance = ud.object(forKey: kPrefix + "builtInBalance").flatMap { $0 as? Float } ?? 0.0
         builtInFadeDuration = ud.object(forKey: kPrefix + "builtInFadeDuration").flatMap { $0 as? Double } ?? 5.0
         builtInOutputDeviceUID = ud.string(forKey: kPrefix + "builtInOutputDeviceUID") ?? ""
         eqBand0Gain = ud.object(forKey: kPrefix + "eqBand0Gain").flatMap { $0 as? Float } ?? 0.0

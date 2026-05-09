@@ -35,6 +35,7 @@ struct SetlistView: View {
     @State private var showExportError = false
     @State private var exportErrorMessage = ""
     @State private var showEQPopover = false
+    @State private var showBalancePopover = false
     @State private var scrollTrigger: UUID? = nil
 
     var body: some View {
@@ -250,12 +251,21 @@ struct SetlistView: View {
                 .disabled(setlist.entries.isEmpty)
             }
             ToolbarItem(placement: .automatic) {
-                Button { showEQPopover.toggle() } label: {
-                    Label("Equaliser", systemImage: "slider.horizontal.3")
-                }
-                .disabled(!isPlayerActive)
-                .popover(isPresented: $showEQPopover) {
-                    EQView().environmentObject(settings)
+                HStack(spacing: 2) {
+                    Button { showEQPopover.toggle() } label: {
+                        Label("Equaliser", systemImage: "slider.horizontal.3")
+                    }
+                    .disabled(!isPlayerActive)
+                    .popover(isPresented: $showEQPopover) {
+                        EQView().environmentObject(settings)
+                    }
+                    Button { showBalancePopover.toggle() } label: {
+                        Label("Balance", systemImage: "dial.medium")
+                    }
+                    .disabled(!isPlayerActive)
+                    .popover(isPresented: $showBalancePopover) {
+                        BalanceView().environmentObject(settings)
+                    }
                 }
             }
             ToolbarItem(placement: .automatic) {
