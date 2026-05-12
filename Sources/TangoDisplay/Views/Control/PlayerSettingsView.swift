@@ -107,6 +107,22 @@ struct PlayerSettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
+                    Toggle("Auto-fade all cortinas", isOn: $settings.autoFadeCortinasEnabled)
+                    if settings.autoFadeCortinasEnabled {
+                        LabeledContent("Cortina play time") {
+                            HStack(spacing: 8) {
+                                Slider(value: $settings.cortinaPlayTime, in: 5...120, step: 1)
+                                Text("\(Int(settings.cortinaPlayTime))s")
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .frame(width: 36, alignment: .trailing)
+                            }
+                        }
+                        Text("Warning – auto-fade applies to cortinas. Your library and cortina rules must ensure correct tagging to avoid dance tracks having auto-fade applied.")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     LabeledContent("Mark as played") {
                         Picker("", selection: $settings.markAsPlayedAfterCompletion) {
                             Text("After song ends").tag(true)

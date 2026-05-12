@@ -121,6 +121,14 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     // Orderable items for cortina-track section
     public var cortinaTrackItemOrder: [DisplayTextItem]
 
+    // Last Tanda label font/colour
+    public var lastTandaLabelFontName:   String
+    public var lastTandaLabelFontSize:   Double
+    public var lastTandaLabelFontBold:   Bool
+    public var lastTandaLabelFontItalic: Bool
+    public var lastTandaLabelColor:      String
+    public var showLastTandaLabel:       Bool
+
     public init(id: UUID, name: String, isBuiltIn: Bool,
                 titleFontName: String = "System", titleFontSize: Double = 72,
                 titleFontBold: Bool = true, titleFontItalic: Bool = false,
@@ -149,8 +157,8 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 albumArtworkScale: Double = 1.0,
                 albumArtworkOffsetX: Double = 0.0,
                 albumArtworkOffsetY: Double = 0.0,
-                danceItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .title, .singer],
-                cortinaItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .singer],
+                danceItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .title, .singer, .lastTandaLabel],
+                cortinaItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .singer, .lastTandaLabel],
                 showSinger: Bool = false,
                 singerSource: SingerSource = .comments,
                 showSingerDuringCortina: Bool = false,
@@ -190,7 +198,11 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 idleMessageFontName: String = "System", idleMessageFontSize: Double = 48,
                 idleMessageFontBold: Bool = false, idleMessageFontItalic: Bool = false,
                 idleMessageColor: String = "#FFFFFF",
-                cortinaTrackItemOrder: [DisplayTextItem] = [.cortinaLabel, .cortinaArtist, .cortinaTitle]) {
+                cortinaTrackItemOrder: [DisplayTextItem] = [.cortinaLabel, .cortinaArtist, .cortinaTitle],
+                lastTandaLabelFontName: String = "System", lastTandaLabelFontSize: Double = 36,
+                lastTandaLabelFontBold: Bool = false, lastTandaLabelFontItalic: Bool = false,
+                lastTandaLabelColor: String = "#FF4444",
+                showLastTandaLabel: Bool = true) {
         self.id = id
         self.name = name
         self.isBuiltIn = isBuiltIn
@@ -281,6 +293,12 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.idleMessageFontItalic = idleMessageFontItalic
         self.idleMessageColor      = idleMessageColor
         self.cortinaTrackItemOrder = cortinaTrackItemOrder
+        self.lastTandaLabelFontName   = lastTandaLabelFontName
+        self.lastTandaLabelFontSize   = lastTandaLabelFontSize
+        self.lastTandaLabelFontBold   = lastTandaLabelFontBold
+        self.lastTandaLabelFontItalic = lastTandaLabelFontItalic
+        self.lastTandaLabelColor      = lastTandaLabelColor
+        self.showLastTandaLabel       = showLastTandaLabel
     }
 
     // Custom decoder so existing JSON lacking the image keys still loads cleanly.
@@ -405,6 +423,21 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
 
         cortinaTrackItemOrder = try c.decodeIfPresent([DisplayTextItem].self, forKey: .cortinaTrackItemOrder)
             ?? [.cortinaLabel, .cortinaArtist, .cortinaTitle]
+
+        lastTandaLabelFontName   = try c.decodeIfPresent(String.self, forKey: .lastTandaLabelFontName)   ?? "System"
+        lastTandaLabelFontSize   = try c.decodeIfPresent(Double.self, forKey: .lastTandaLabelFontSize)   ?? 36
+        lastTandaLabelFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .lastTandaLabelFontBold)   ?? false
+        lastTandaLabelFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .lastTandaLabelFontItalic) ?? false
+        lastTandaLabelColor      = try c.decodeIfPresent(String.self, forKey: .lastTandaLabelColor)      ?? "#FF4444"
+        showLastTandaLabel       = try c.decodeIfPresent(Bool.self,   forKey: .showLastTandaLabel)       ?? true
+
+        // Migration: append .lastTandaLabel to order lists if absent
+        if !danceItemOrder.contains(.lastTandaLabel) {
+            danceItemOrder.append(.lastTandaLabel)
+        }
+        if !cortinaItemOrder.contains(.lastTandaLabel) {
+            cortinaItemOrder.append(.lastTandaLabel)
+        }
     }
 
     public func singerValue(from track: Track) -> String? {
@@ -444,22 +477,24 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
 
 public enum DisplayTextItem: String, Codable, CaseIterable {
     case genre, artist, year, title, singer
-    case cortinaLabel   // "CORTINA" heading text
-    case cortinaArtist  // cortina track's own artist
-    case cortinaTitle   // cortina track's own title
-    case nextUpLabel    // "COMING UP" heading text
+    case cortinaLabel    // "CORTINA" heading text
+    case cortinaArtist   // cortina track's own artist
+    case cortinaTitle    // cortina track's own title
+    case nextUpLabel     // "COMING UP" heading text
+    case lastTandaLabel  // "LAST TANDA" announcement label
 
     public var displayName: String {
         switch self {
-        case .genre:        "Genre"
-        case .artist:       "Artist"
-        case .year:         "Year"
-        case .title:        "Title"
-        case .singer:       "Singer"
-        case .cortinaLabel: "Cortina Label"
-        case .cortinaArtist:"Cortina Artist"
-        case .cortinaTitle: "Cortina Title"
-        case .nextUpLabel:  "Next Up Label"
+        case .genre:           "Genre"
+        case .artist:          "Artist"
+        case .year:            "Year"
+        case .title:           "Title"
+        case .singer:          "Singer"
+        case .cortinaLabel:    "Cortina Label"
+        case .cortinaArtist:   "Cortina Artist"
+        case .cortinaTitle:    "Cortina Title"
+        case .nextUpLabel:     "Next Up Label"
+        case .lastTandaLabel:  "Last Tanda Label"
         }
     }
 }

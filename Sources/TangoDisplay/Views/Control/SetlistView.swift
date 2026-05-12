@@ -37,6 +37,7 @@ struct SetlistView: View {
     @State private var showEQPopover = false
     @State private var showBalancePopover = false
     @State private var scrollTrigger: UUID? = nil
+    @State private var showLastTandaWarning = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -172,7 +173,9 @@ struct SetlistView: View {
                     showTime: settings.showTime,
                     showComments: settings.showComments,
                     showAlbumArtist: settings.showAlbumArtist,
-                    wouldSkipAutoGap: wouldSkipAutoGap
+                    wouldSkipAutoGap: wouldSkipAutoGap,
+                    autoFadeCortinasEnabled: settings.autoFadeCortinasEnabled,
+                    isLastTanda: entry.isLastTanda
                 )
                 .tag(entry.id)
                 .moveDisabled(entry.state == .playing)
@@ -182,39 +185,8 @@ struct SetlistView: View {
                 .overlay(DoubleClickOverlay { player.jumpTo(entry) })
                 .contextMenu {
                     let targets: Set<UUID> = selectedIDs.contains(entry.id)
-                        ? selectedIDs
-                        : [entry.id]
-                    let allPlayed = targets.allSatisfy { id in
-                        setlist.entries.first(where: { $0.id == id })?.state == .played
-                    }
-                    if allPlayed {
-                        Button("Mark as Not Played") {
-                            setlist.markUnplayed(ids: targets)
-                        }
-                    } else {
-                        Button("Mark as Played") {
-                            setlist.markPlayed(ids: targets)
-                            selectedIDs.subtract(targets)
-                        }
-                    }
-                    if targets.count == 1, let id = targets.first {
-                        Divider()
-                        Button {
-                            setlist.stopAfterEntryID = (setlist.stopAfterEntryID == id) ? nil : id
-                        } label: {
-                            Text(setlist.stopAfterEntryID == id ? "Resume after Playing" : "Stop after Playing")
-                        }
-                        if let entry = setlist.entries.first(where: { $0.id == id }),
-                           entry.state == .queued || entry.state == .paused {
-                            Button(entry.ignoresAutoGap ? "Resume Auto-gap" : "Ignore Auto-gap before this Track") {
-                                setlist.toggleIgnoresAutoGap(id: id)
-                            }
-                        }
-                    }
-                    Divider()
-                    Button("Delete", role: .destructive) {
-                        pendingDeleteIDs = targets
-                    }
+                        ? selectedIDs : [entry.id]
+                    rowContextMenu(entry: entry, targets: targets)
                 }
             }
             .onMove { source, dest in
@@ -331,11 +303,78 @@ struct SetlistView: View {
         } message: {
             Text(exportErrorMessage)
         }
+        .alert("Last Tanda Not Configured", isPresented: $showLastTandaWarning) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Set the Last Tanda label text in Appearance Settings before marking a Last Tanda.")
+        }
     }
 
     private var deleteConfirmationTitle: String {
         let count = pendingDeleteIDs?.count ?? 0
         return count == 1 ? "Delete Track?" : "Delete \(count) Tracks?"
+    }
+
+    @ViewBuilder
+    private func rowContextMenu(entry: SetlistEntry, targets: Set<UUID>) -> some View {
+        let allPlayed = targets.allSatisfy { id in
+            setlist.entries.first(where: { $0.id == id })?.state == .played
+        }
+        if allPlayed {
+            Button("Mark as Not Played") { setlist.markUnplayed(ids: targets) }
+        } else {
+            Button("Mark as Played") {
+                setlist.markPlayed(ids: targets)
+                selectedIDs.subtract(targets)
+            }
+        }
+        if targets.count == 1, let id = targets.first {
+            Divider()
+            Button {
+                setlist.stopAfterEntryID = (setlist.stopAfterEntryID == id) ? nil : id
+            } label: {
+                Text(setlist.stopAfterEntryID == id ? "Resume after Playing" : "Stop after Playing")
+            }
+            if let e = setlist.entries.first(where: { $0.id == id }),
+               e.state == .queued || e.state == .paused {
+                Button(e.ignoresAutoGap ? "Resume Auto-gap" : "Ignore Auto-gap before this Track") {
+                    setlist.toggleIgnoresAutoGap(id: id)
+                }
+            }
+        }
+        let detector = settings.makeDetector()
+        if settings.autoFadeCortinasEnabled && appState.fadeMode == .none {
+            let autoFadeTargets = targets.filter { id in
+                guard let e = setlist.entries.first(where: { $0.id == id }) else { return false }
+                return (e.state != .played || e.id == player.currentEntryID) && detector.isCortina(genre: e.track.genre)
+            }
+            let skippable = autoFadeTargets.filter { id in
+                !(setlist.entries.first(where: { $0.id == id })?.ignoresAutoFade ?? false)
+            }
+            if !skippable.isEmpty {
+                Divider()
+                Button("Skip Auto-fade") {
+                    for id in skippable { appState.toggleIgnoresAutoFadeForEntry(id: id) }
+                }
+            }
+        }
+        // Last Tanda: single cortina entry not yet fully played
+        if targets.count == 1, let id = targets.first,
+           let e = setlist.entries.first(where: { $0.id == id }),
+           detector.isCortina(genre: e.track.genre),
+           e.state != .played || e.id == player.currentEntryID {
+            Divider()
+            Button(e.isLastTanda ? "Remove Last Tanda" : "Mark as Last Tanda") {
+                if !e.isLastTanda &&
+                   settings.lastTandaLabel.trimmingCharacters(in: .whitespaces).isEmpty {
+                    showLastTandaWarning = true
+                } else {
+                    appState.setLastTanda(id: id, value: !e.isLastTanda)
+                }
+            }
+        }
+        Divider()
+        Button("Delete", role: .destructive) { pendingDeleteIDs = targets }
     }
 
     private func exportM3U8() {
@@ -421,14 +460,25 @@ private struct StatusBarView: View {
 
             Spacer()
 
-            HStack(spacing: 4) {
-                Circle()
-                    .fill(settings.autoGapEnabled ? Color.green : Color.secondary)
-                    .frame(width: 6, height: 6)
-                Text("Auto-gap: \(settings.autoGapEnabled ? "on" : "off")")
+            HStack(spacing: 12) {
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(settings.autoGapEnabled ? Color.green : Color.secondary)
+                        .frame(width: 6, height: 6)
+                    Text("Auto-gap: \(settings.autoGapEnabled ? "on" : "off")")
+                }
+                .font(.system(size: 11))
+                .foregroundColor(settings.autoGapEnabled ? .primary : .secondary)
+
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(settings.autoFadeCortinasEnabled ? Color.orange : Color.secondary)
+                        .frame(width: 6, height: 6)
+                    Text("Auto-fade: \(settings.autoFadeCortinasEnabled ? "on" : "off")")
+                }
+                .font(.system(size: 11))
+                .foregroundColor(settings.autoFadeCortinasEnabled ? .primary : .secondary)
             }
-            .font(.system(size: 11))
-            .foregroundColor(settings.autoGapEnabled ? .primary : .secondary)
 
             Spacer()
 
@@ -520,6 +570,8 @@ struct SetlistRowView: View {
     var showComments: Bool = false
     var showAlbumArtist: Bool = false
     var wouldSkipAutoGap: Bool = false
+    var autoFadeCortinasEnabled: Bool = false
+    var isLastTanda: Bool = false
 
     private var isCurrent: Bool { entry.state == .playing || entry.state == .paused || isActivelyPlaying }
     private var isCurrentPlaying: Bool { entry.state == .playing || isActivelyPlaying }
@@ -581,6 +633,16 @@ struct SetlistRowView: View {
                 Image(systemName: "wave.3.left.circle")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
+            }
+            if autoFadeCortinasEnabled && entry.ignoresAutoFade {
+                Image(systemName: "speaker.slash")
+                    .font(.system(size: 11))
+                    .foregroundColor(.orange)
+            }
+            if isLastTanda {
+                Image(systemName: "flag.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(.red)
             }
         }
         .padding(.vertical, 3)

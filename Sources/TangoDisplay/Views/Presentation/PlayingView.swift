@@ -4,6 +4,7 @@ import TangoDisplayCore
 struct PlayingView: View {
     let state: DisplayState
     let profile: AppearanceProfile
+    let isLastTandaActive: Bool
     @ObservedObject var settings: AppSettings
 
     var body: some View {
@@ -61,6 +62,13 @@ struct PlayingView: View {
                                 .lineLimit(2)
                                 .minimumScaleFactor(0.5)
                         }
+                    }
+                case .lastTandaLabel:
+                    if profile.showLastTandaLabel, isLastTandaActive, !settings.lastTandaLabel.isEmpty {
+                        Text(settings.lastTandaLabel.uppercased())
+                            .font(profile.lastTandaLabelFont)
+                            .foregroundColor(profile.lastTandaLabelSwiftUIColor)
+                            .multilineTextAlignment(.center)
                     }
                 case .cortinaLabel, .cortinaArtist, .cortinaTitle, .nextUpLabel:
                     EmptyView()

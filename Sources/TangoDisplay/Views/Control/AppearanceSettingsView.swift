@@ -239,6 +239,29 @@ struct AppearanceSettingsView: View {
             }
 
             Section {
+                HStack {
+                    Text("Label text")
+                    Spacer()
+                    TextField("e.g. LAST TANDA", text: $settings.lastTandaLabel)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 200)
+                }
+                colorRow("Color", hex: $working.lastTandaLabelColor)
+                fontRow("Font", name: $working.lastTandaLabelFontName, size: $working.lastTandaLabelFontSize,
+                        bold: $working.lastTandaLabelFontBold, italic: $working.lastTandaLabelFontItalic)
+                Toggle("Show in display", isOn: $working.showLastTandaLabel)
+            } header: {
+                Text("Last Tanda")
+                    .foregroundColor(ControlTheme.accent)
+            } footer: {
+                Label {
+                    Text("Shown when Last Tanda mode is active. Mark a cortina via right-click in the setlist.")
+                } icon: {
+                    Image(systemName: "info.circle")
+                }
+            }
+
+            Section {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Dance Tracks")
                         .font(.subheadline)

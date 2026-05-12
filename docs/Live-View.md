@@ -46,8 +46,23 @@ At the bottom of the preview area:
 | **Force Poll** | `⌘⇧R` | Immediately triggers a Music.app re-read, bypassing the normal notification/fallback-poll cycle |
 | **Override…** | `⌘⇧O` | Opens a dialog to manually set what text appears on the display |
 | **Pause Display** | `⌘⇧P` | Freezes the dancer screen; pressing again resumes live updates |
+| **Last Tanda** | | Activates the Last Tanda label on the dancer display — label appears in the cortina coming-up section and throughout every dance track in the tanda. Toggle again to clear. Disabled if no Last Tanda label text is configured in Appearance Settings. |
 
-All three shortcuts work globally — you don't need to switch to TangoDisplay first.
+All three keyboard shortcuts work globally — you don't need to switch to TangoDisplay first. The Last Tanda toggle has no shortcut.
+
+---
+
+## Last Tanda
+
+The **Last Tanda** toggle activates the Last Tanda label on the dancer display. When toggled on:
+- During a cortina: the label appears in the coming-up section alongside the next tanda preview.
+- During dance tracks: the label appears as an orderable field in the Dance Tracks display.
+
+The toggle is enabled only when a Last Tanda label text is configured and the **Show in display** option is on in **Appearance › Last Tanda**.
+
+**Works with any player source.** For Built-in Player users, cortinas can also be pre-scheduled — see [Last Tanda](Built-In-Player#last-tanda) in the Built-in Player docs.
+
+Turning the toggle off immediately clears the label from the display.
 
 ---
 

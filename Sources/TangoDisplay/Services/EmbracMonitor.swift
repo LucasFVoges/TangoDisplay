@@ -17,7 +17,7 @@ import TangoDisplayCore
 /// application, which returns the current setlist in order. triggerPlaylistFetch()
 /// dispatches a playlist script run on demand; doPoll() also refreshes the playlist
 /// every playlistRefreshInterval polls for robustness.
-final class EmbracMonitor {
+final class EmbracMonitor: @unchecked Sendable {
 
     private static let updateNotification = "com.iccir.Embrace.playerUpdate"
 

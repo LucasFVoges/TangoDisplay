@@ -4,6 +4,7 @@ import TangoDisplayCore
 struct CortinaView: View {
     let state: DisplayState
     let profile: AppearanceProfile
+    let isLastTandaActive: Bool
     @ObservedObject var settings: AppSettings
 
     var body: some View {
@@ -48,7 +49,9 @@ struct CortinaView: View {
                 }
             }
 
-            if profile.showNextTrackDuringCortina, let next = state.nextTrack {
+            let showComingUp = profile.showNextTrackDuringCortina && state.nextTrack != nil
+            let showLastTanda = isLastTandaActive && profile.showLastTandaLabel && !settings.lastTandaLabel.isEmpty
+            if showComingUp || showLastTanda {
                 // Divider between cortina section and coming-up section
                 Rectangle()
                     .fill(profile.genreSwiftUIColor.opacity(0.3))
@@ -60,18 +63,21 @@ struct CortinaView: View {
                     ForEach(profile.cortinaItemOrder, id: \.self) { item in
                         switch item {
                         case .nextUpLabel:
-                            Text(settings.nextUpLabel)
-                                .font(profile.nextUpLabelFont)
-                                .tracking(4)
-                                .foregroundColor(profile.nextUpLabelSwiftUIColor)
+                            if showComingUp {
+                                Text(settings.nextUpLabel)
+                                    .font(profile.nextUpLabelFont)
+                                    .tracking(4)
+                                    .foregroundColor(profile.nextUpLabelSwiftUIColor)
+                            }
                         case .genre:
-                            if profile.showGenreCortina, !next.genre.isEmpty {
+                            if showComingUp, let next = state.nextTrack,
+                               profile.showGenreCortina, !next.genre.isEmpty {
                                 Text(settings.displayLabel(for: next.genre))
                                     .font(profile.genreFont)
                                     .foregroundColor(profile.genreSwiftUIColor)
                             }
                         case .artist:
-                            if profile.showArtistCortina {
+                            if showComingUp, let next = state.nextTrack, profile.showArtistCortina {
                                 Text(settings.transform(next.artist, for: .artist))
                                     .font(profile.artistFont)
                                     .foregroundColor(profile.artistSwiftUIColor)
@@ -80,7 +86,8 @@ struct CortinaView: View {
                                     .multilineTextAlignment(.center)
                             }
                         case .year:
-                            if profile.showYearCortina, let year = next.year {
+                            if showComingUp, let next = state.nextTrack,
+                               profile.showYearCortina, let year = next.year {
                                 let displayYear = settings.transform(String(year), for: .year)
                                 if !displayYear.isEmpty {
                                     Text(displayYear)
@@ -90,7 +97,8 @@ struct CortinaView: View {
                                 }
                             }
                         case .title:
-                            if profile.showTitleCortina, !next.title.isEmpty {
+                            if showComingUp, let next = state.nextTrack,
+                               profile.showTitleCortina, !next.title.isEmpty {
                                 Text(settings.transform(next.title, for: .title))
                                     .font(profile.titleFont)
                                     .foregroundColor(profile.titleSwiftUIColor)
@@ -99,7 +107,8 @@ struct CortinaView: View {
                                     .minimumScaleFactor(0.5)
                             }
                         case .singer:
-                            if profile.showSingerCortina,
+                            if showComingUp, let next = state.nextTrack,
+                               profile.showSingerCortina,
                                let rawSinger = profile.singerValue(from: next), !rawSinger.isEmpty {
                                 let singerField: TrackInfoField = profile.singerSource == .albumArtist ? .albumArtist : .comments
                                 let singer = settings.transform(rawSinger, for: singerField)
@@ -111,6 +120,13 @@ struct CortinaView: View {
                                         .lineLimit(2)
                                         .minimumScaleFactor(0.5)
                                 }
+                            }
+                        case .lastTandaLabel:
+                            if showLastTanda {
+                                Text(settings.lastTandaLabel.uppercased())
+                                    .font(profile.lastTandaLabelFont)
+                                    .foregroundColor(profile.lastTandaLabelSwiftUIColor)
+                                    .multilineTextAlignment(.center)
                             }
                         default:
                             EmptyView()

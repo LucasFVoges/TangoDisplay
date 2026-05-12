@@ -65,6 +65,7 @@ Each row shows:
 | Comments / Album Artist | Optional — toggle in Player Settings |
 | Stop marker | Small stop icon when "Stop After This Track" is set |
 | Auto-gap icon | Filled green wave = auto-gap silence applied before this track · Outlined grey wave = skipped or ignored |
+| Last Tanda flag | Red flag icon = this cortina is marked as the last tanda and will activate the Last Tanda label when it plays |
 
 The setlist persists across app restarts — it is saved automatically to Application Support.
 
@@ -142,6 +143,7 @@ Right-click any row:
 | **Delete** | Removes the track from the setlist (asks for confirmation) |
 | **Ignore Auto-gap before this Track** | Disables auto-gap for this track only. Shows as **Resume Auto-gap** when already set; click again to re-enable it. |
 | **Skip Auto-fade** | Disables auto-fade for this cortina track only, re-enabling the Fade & Stop and Fade & Continue buttons for manual control. Available only when Auto-fade is enabled and fading has not yet started. |
+| **Mark as Last Tanda** | Marks this cortina as the last tanda. TangoDisplay will automatically activate the Last Tanda label when this cortina starts and deactivate it when the next cortina begins. A red flag appears on the row. Shows as **Remove Last Tanda** when already set. Available only on cortina tracks. Requires Last Tanda label text to be configured in Appearance Settings. |
 
 > **Screenshot placeholder:** right-click context menu on a setlist row
 
@@ -232,6 +234,34 @@ Right-click any cortina row in the setlist and select **Skip Auto-fade** to disa
 | **Orange marker on seek bar** | The point at which auto-fade will begin for the current cortina |
 | **Setlist footer orange dot** | Orange dot + "Auto-fade: on" = feature active. Grey dot + "Auto-fade: off" = feature disabled. |
 | **Fade buttons (disabled)** | Auto-fade is scheduled — the transition will happen automatically |
+
+---
+
+## Last Tanda
+
+Pre-schedule which cortina is the last tanda of your milonga. When that cortina plays, TangoDisplay automatically activates the Last Tanda label on the dancer display — no manual intervention needed mid-set.
+
+### Marking a Cortina
+
+Right-click any cortina row in the setlist and select **Mark as Last Tanda**. A red flag icon appears on the row to confirm. Only one cortina can be marked at a time — marking a new one automatically clears any previous marker.
+
+> If no Last Tanda label text is configured in **Appearance Settings › Last Tanda**, a warning is shown instead of marking the cortina. Configure the label text first.
+
+### How Activation Works
+
+| Moment | What happens |
+|---|---|
+| Marked cortina starts playing | Last Tanda label activates automatically |
+| During dance tracks in the tanda | Label remains visible on every track |
+| Next cortina starts | Label deactivates automatically |
+
+### Live Override
+
+The **Last Tanda** toggle on the **Live** screen always takes priority. You can turn it off at any time — the label clears immediately and remains off for the rest of the current tanda, even as new tracks play.
+
+### Removing the Marker
+
+Right-click the marked cortina row and select **Remove Last Tanda**. The flag icon disappears.
 
 ---
 

@@ -57,12 +57,14 @@ extension AppearanceProfile {
     var cortinaLabelSwiftUIColor:  Color { Color(hex: cortinaLabelColor) }
     var cortinaArtistSwiftUIColor: Color { Color(hex: cortinaArtistColor) }
     var cortinaTitleSwiftUIColor:  Color { Color(hex: cortinaTitleColor) }
-    var nextUpLabelSwiftUIColor:   Color { Color(hex: nextUpLabelColor) }
-    var idleMessageSwiftUIColor:   Color { Color(hex: idleMessageColor) }
+    var nextUpLabelSwiftUIColor:    Color { Color(hex: nextUpLabelColor) }
+    var idleMessageSwiftUIColor:    Color { Color(hex: idleMessageColor) }
+    var lastTandaLabelSwiftUIColor: Color { Color(hex: lastTandaLabelColor) }
 
-    var cortinaLabelFont:  Font { font(name: cortinaLabelFontName,  size: cortinaLabelFontSize,  bold: cortinaLabelFontBold,  italic: cortinaLabelFontItalic) }
-    var cortinaArtistFont: Font { font(name: cortinaArtistFontName, size: cortinaArtistFontSize, bold: cortinaArtistFontBold, italic: cortinaArtistFontItalic) }
-    var cortinaTitleFont:  Font { font(name: cortinaTitleFontName,  size: cortinaTitleFontSize,  bold: cortinaTitleFontBold,  italic: cortinaTitleFontItalic) }
-    var nextUpLabelFont:   Font { font(name: nextUpLabelFontName,   size: nextUpLabelFontSize,   bold: nextUpLabelFontBold,   italic: nextUpLabelFontItalic) }
-    var idleMessageFont:   Font { font(name: idleMessageFontName,   size: idleMessageFontSize,   bold: idleMessageFontBold,   italic: idleMessageFontItalic) }
+    var cortinaLabelFont:   Font { font(name: cortinaLabelFontName,   size: cortinaLabelFontSize,   bold: cortinaLabelFontBold,   italic: cortinaLabelFontItalic) }
+    var cortinaArtistFont:  Font { font(name: cortinaArtistFontName,  size: cortinaArtistFontSize,  bold: cortinaArtistFontBold,  italic: cortinaArtistFontItalic) }
+    var cortinaTitleFont:   Font { font(name: cortinaTitleFontName,   size: cortinaTitleFontSize,   bold: cortinaTitleFontBold,   italic: cortinaTitleFontItalic) }
+    var nextUpLabelFont:    Font { font(name: nextUpLabelFontName,    size: nextUpLabelFontSize,    bold: nextUpLabelFontBold,    italic: nextUpLabelFontItalic) }
+    var idleMessageFont:    Font { font(name: idleMessageFontName,    size: idleMessageFontSize,    bold: idleMessageFontBold,    italic: idleMessageFontItalic) }
+    var lastTandaLabelFont: Font { font(name: lastTandaLabelFontName, size: lastTandaLabelFontSize, bold: lastTandaLabelFontBold, italic: lastTandaLabelFontItalic) }
 }

@@ -58,7 +58,9 @@ final class AppState: ObservableObject {
     private var pendingStateBeforePause: DisplayState? = nil  // state snapshot for unpausing
     private var pauseArmTask: Task<Void, Never>?     // Embrace-style pause confirmation timer
     @Published private(set) var fadeMode: FadeMode = .none
+    @Published private(set) var isLastTandaActive: Bool = false
     private var fadeTask: Task<Void, Never>?
+    private var autoFadeTask: Task<Void, Never>?
     private var preFadeVolume: Float = 1.0
     var isDisplayPausedByUser: Bool { isPausedByUser }
     var activeSourceSupportsPlaylist: Bool { activeSource.supportsPlaylist }
@@ -175,9 +177,69 @@ final class AppState: ObservableObject {
         fadeMode = .none
     }
 
+    private func cancelAutoFade() {
+        autoFadeTask?.cancel()
+        autoFadeTask = nil
+    }
+
+    func setLastTanda(id: UUID, value: Bool) {
+        setlist.setIsLastTanda(id: id, value: value)
+        if value {
+            // Activate immediately if this cortina is currently playing
+            if let player = localPlayer, player.currentEntryID == id,
+               displayState.mode == .cortina {
+                isLastTandaActive = true
+            }
+        } else if isLastTandaActive {
+            // Deactivate if we're removing the marker from the active entry or during its tanda
+            if let player = localPlayer, player.currentEntryID == id {
+                isLastTandaActive = false
+            } else if displayState.mode == .playing {
+                isLastTandaActive = false
+            }
+        }
+    }
+
+    func activateLastTanda(_ active: Bool) {
+        isLastTandaActive = active
+    }
+
+    func toggleIgnoresAutoFadeForEntry(id: UUID) {
+        setlist.toggleIgnoresAutoFade(id: id)
+        guard let entry = setlist.entries.first(where: { $0.id == id }),
+              entry.state == .playing else { return }
+        if entry.ignoresAutoFade {
+            cancelAutoFade()
+        } else {
+            rescheduleAutoFadeIfNeeded()
+        }
+    }
+
+    private func rescheduleAutoFadeIfNeeded() {
+        guard settings.autoFadeCortinasEnabled,
+              displayState.mode == .cortina,
+              let player = localPlayer,
+              autoFadeTask == nil else { return }
+        if setlist.entries.first(where: { $0.id == player.currentEntryID })?.ignoresAutoFade == true { return }
+        let dur = player.duration > 0 ? player.duration
+            : (setlist.entries.first(where: { $0.state == .playing })?.duration ?? 0.0)
+        let remaining = autoFadeDelay(trackDuration: dur) - player.elapsed
+        if remaining <= 0 {
+            triggerAutoFadeCortina()
+            return
+        }
+        autoFadeTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .seconds(remaining))
+            guard !Task.isCancelled else { return }
+            self.triggerAutoFadeCortina()
+        }
+    }
+
     private func resetTransientState() {
         cancelPauseArm()
         cancelFade()
+        cancelAutoFade()
         trackHistory.removeAll()
         playlistTracks = nil
         playlistCurrentIndex = 0
@@ -201,9 +263,10 @@ final class AppState: ObservableObject {
         let pid = track?.persistentID ?? ""
         guard pid != lastSeenPersistentID || playerState != currentPlayerState || track != lastSeenTrack else { return }
 
-        // Cancel any in-progress fade if the track changed externally
-        if fadeMode != .none && pid != lastSeenPersistentID {
-            cancelFade()
+        // Cancel any in-progress fade and pending auto-fade if the track changed externally
+        if pid != lastSeenPersistentID {
+            if fadeMode != .none { cancelFade() }
+            cancelAutoFade()
         }
 
         lastSeenPersistentID = pid
@@ -222,12 +285,14 @@ final class AppState: ObservableObject {
 
         // Stopped
         if playerState == .stopped || track == nil {
+            cancelAutoFade()
             trackHistory.removeAll()
             displayState = DisplayState()   // mode = .idle
             isPausedByUser = false
             pendingStateBeforePause = nil
             currentArtwork = nil
             displayedArtworkTrackID = nil
+            isLastTandaActive = false
             return
         }
 
@@ -301,6 +366,15 @@ final class AppState: ObservableObject {
         let nextTrack = findNextDanceTrack(after: playlistCurrentIndex, detector: detector)
             ?? lastKnownNextTrack.flatMap { detector.isCortina(genre: $0.genre) ? nil : $0 }
         trackHistory.removeAll()
+
+        // Last tanda: deactivate (previous tanda ended); re-activate if this cortina is marked
+        isLastTandaActive = false
+        if let player = localPlayer,
+           let id = player.currentEntryID,
+           setlist.entries.first(where: { $0.id == id })?.isLastTanda == true {
+            isLastTandaActive = true
+        }
+
         displayState = DisplayState(
             mode: .cortina,
             currentTrack: track,
@@ -310,6 +384,8 @@ final class AppState: ObservableObject {
         )
         currentArtwork = nil
         displayedArtworkTrackID = nil
+
+        rescheduleAutoFadeIfNeeded()
     }
 
     private func handleDanceTrack(track: Track, detector: CortinaDetector) {
@@ -477,7 +553,8 @@ final class AppState: ObservableObject {
     func transportSeek(to s: Double) { activeSource.seek(to: s) }
 
     func transportFadeAndStop() {
-        if fadeMode == .fadeAndStop { cancelFade(); return }
+        if fadeMode == .fadeAndStop { cancelFade(); rescheduleAutoFadeIfNeeded(); return }
+        cancelAutoFade()
         guard displayState.mode == .cortina, let player = localPlayer else { return }
         preFadeVolume = player.volume
         fadeMode = .fadeAndStop
@@ -492,7 +569,8 @@ final class AppState: ObservableObject {
     }
 
     func transportFadeAndContinue() {
-        if fadeMode == .fadeAndContinue { cancelFade(); return }
+        if fadeMode == .fadeAndContinue { cancelFade(); rescheduleAutoFadeIfNeeded(); return }
+        cancelAutoFade()
         guard displayState.mode == .cortina, let player = localPlayer else { return }
         preFadeVolume = player.volume
         fadeMode = .fadeAndContinue
@@ -520,6 +598,33 @@ final class AppState: ObservableObject {
             player.volume = startVolume * Float(pow(1.0 - t, 2.0))
         }
         player.volume = 0
+    }
+
+    private func autoFadeDelay(trackDuration: Double) -> Double {
+        let fade = settings.builtInFadeDuration
+        let play = settings.cortinaPlayTime
+        if trackDuration > play + fade { return play }
+        if trackDuration > fade        { return trackDuration - fade }
+        return 0
+    }
+
+    @MainActor private func triggerAutoFadeCortina() {
+        autoFadeTask = nil
+        guard settings.autoFadeCortinasEnabled else { return }
+        guard let player = localPlayer, fadeMode == .none else { return }
+        preFadeVolume = player.volume
+        fadeMode = .fadeAndContinue
+        fadeTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.performFade(player: player)
+            guard !Task.isCancelled, self.fadeMode == .fadeAndContinue else { return }
+            try? await Task.sleep(for: .seconds(1.0))
+            guard !Task.isCancelled, self.fadeMode == .fadeAndContinue else { return }
+            self.fadeMode = .none
+            player.volume = self.preFadeVolume
+            self.cancelPauseArm()
+            self.activeSource.skipNext()
+        }
     }
 
     func syncVolume(_ v: Float) {

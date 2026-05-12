@@ -131,6 +131,23 @@ struct PlayerControlsView: View {
                         .frame(width: 2, height: 10)
                         .position(x: fraction * geo.size.width, y: geo.size.height / 2)
                         .opacity(shouldShow ? 1 : 0)
+                    let autoFadeDelay: Double = {
+                        guard appState.settings.autoFadeCortinasEnabled,
+                              appState.displayState.mode == .cortina,
+                              player.duration > 0 else { return -1 }
+                        if appState.setlist.entries.first(where: { $0.id == player.currentEntryID })?.ignoresAutoFade == true { return -1 }
+                        let fade = appState.settings.builtInFadeDuration
+                        let play = appState.settings.cortinaPlayTime
+                        let dur = player.duration
+                        if dur > play + fade { return play }
+                        if dur > fade        { return dur - fade }
+                        return -1
+                    }()
+                    Rectangle()
+                        .fill(Color.orange.opacity(0.85))
+                        .frame(width: 2, height: 10)
+                        .position(x: (autoFadeDelay / player.duration) * geo.size.width, y: geo.size.height / 2)
+                        .opacity(autoFadeDelay >= 0 ? 1 : 0)
                 }
                 .allowsHitTesting(false)
             }
@@ -170,6 +187,19 @@ struct PlayerControlsView: View {
     private var fadeButtons: some View {
         let isCortina = appState.displayState.mode == .cortina
         let mode = appState.fadeMode
+        let autoFadeBlocksButtons: Bool = {
+            guard appState.settings.autoFadeCortinasEnabled, isCortina else { return false }
+            if appState.setlist.entries.first(where: { $0.id == player.currentEntryID })?.ignoresAutoFade == true { return false }
+            let fade = appState.settings.builtInFadeDuration
+            let play = appState.settings.cortinaPlayTime
+            let dur = player.duration
+            guard dur > 0 else { return true }
+            let delay: Double
+            if dur > play + fade      { delay = play }
+            else if dur > fade        { delay = dur - fade }
+            else                      { return true }
+            return player.elapsed >= delay
+        }()
 
         return HStack(spacing: 10) {
             Button {
@@ -183,7 +213,7 @@ struct PlayerControlsView: View {
             }
             .buttonStyle(.bordered)
             .tint(mode == .fadeAndStop ? .red : nil)
-            .disabled(mode == .fadeAndContinue || (mode == .none && !isCortina))
+            .disabled(mode == .fadeAndContinue || (mode == .none && (!isCortina || autoFadeBlocksButtons)))
 
             Button {
                 appState.transportFadeAndContinue()
@@ -196,7 +226,7 @@ struct PlayerControlsView: View {
             }
             .buttonStyle(.bordered)
             .tint(mode == .fadeAndContinue ? .red : nil)
-            .disabled(mode == .fadeAndStop || (mode == .none && !isCortina))
+            .disabled(mode == .fadeAndStop || (mode == .none && (!isCortina || autoFadeBlocksButtons)))
         }
     }
 

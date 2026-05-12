@@ -16,7 +16,8 @@ let package = Package(
         .executableTarget(
             name: "TangoDisplay",
             dependencies: ["TangoDisplayCore"],
-            path: "Sources/TangoDisplay"
+            path: "Sources/TangoDisplay",
+            resources: [.copy("Resources/SetlistLogo.png")]
         ),
         // Lightweight test runner executable — no XCTest needed (CLI tools only, no Xcode.app)
         // Usage: swift run TangoDisplayTests

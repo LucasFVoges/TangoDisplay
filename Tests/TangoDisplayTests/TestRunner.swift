@@ -324,7 +324,7 @@ func runProfileStoreTests() {
             defer { try? FileManager.default.removeItem(at: tmpDir) }
 
             let store = ProfileStore(storeURL: tmpDir)
-            var profile = AppearanceProfile(
+            let profile = AppearanceProfile(
                 id: UUID(), name: "Test Profile", isBuiltIn: false,
                 backgroundColor: "#FF0000"
             )

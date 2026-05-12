@@ -3,8 +3,18 @@ import TangoDisplayCore
 
 struct StatusPane: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var settings: AppSettings
     @Binding var showingOverride: Bool
     @State private var showDebugLog = false
+
+    private var isLastTandaEnabled: Bool {
+        guard !settings.lastTandaLabel.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        let all = appState.profileStore.allProfiles
+        if let id = settings.activeProfileID, let p = all.first(where: { $0.id == id }) {
+            return p.showLastTandaLabel
+        }
+        return AppearanceProfile.classic.showLastTandaLabel
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -31,6 +41,18 @@ struct StatusPane: View {
                 .buttonStyle(.bordered)
                 .tint(appState.isDisplayPausedByUser ? .orange : nil)
             }
+
+            // Last Tanda toggle
+            Toggle(isOn: Binding(
+                get: { appState.isLastTandaActive },
+                set: { appState.activateLastTanda($0) }
+            )) {
+                Label("Last Tanda", systemImage: appState.isLastTandaActive ? "flag.fill" : "flag")
+            }
+            .toggleStyle(.button)
+            .tint(.red)
+            .disabled(!isLastTandaEnabled)
+            .help(isLastTandaEnabled ? "" : "Set Last Tanda label in Appearance Settings to enable.")
 
             Divider()
 

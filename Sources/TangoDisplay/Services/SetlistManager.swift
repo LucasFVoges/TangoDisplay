@@ -16,11 +16,13 @@ struct SetlistEntry: Identifiable, Codable {
     var state: SetlistEntryState
     var duration: TimeInterval?
     var ignoresAutoGap: Bool = false
+    var ignoresAutoFade: Bool = false
+    var isLastTanda: Bool = false      // marks this cortina as the last-tanda trigger
     var autoGapApplied: Bool = false   // transient: true while auto-gap preroll is scheduled before this track
     var autoGapSkipped: Bool = false   // transient: true when the first-track setting automatically skips the gap
 
     enum CodingKeys: String, CodingKey {
-        case id, fileURL, track, state, duration, ignoresAutoGap
+        case id, fileURL, track, state, duration, ignoresAutoGap, ignoresAutoFade, isLastTanda
         // autoGapApplied and autoGapSkipped are intentionally excluded — reset each playback session
     }
 
@@ -39,6 +41,8 @@ struct SetlistEntry: Identifiable, Codable {
         state = try c.decode(SetlistEntryState.self, forKey: .state)
         duration = try c.decodeIfPresent(TimeInterval.self, forKey: .duration)
         ignoresAutoGap = try c.decodeIfPresent(Bool.self, forKey: .ignoresAutoGap) ?? false
+        ignoresAutoFade = try c.decodeIfPresent(Bool.self, forKey: .ignoresAutoFade) ?? false
+        isLastTanda = try c.decodeIfPresent(Bool.self, forKey: .isLastTanda) ?? false
         autoGapApplied = false
         autoGapSkipped = false
     }
@@ -178,6 +182,20 @@ final class SetlistManager: ObservableObject {
         save()
     }
 
+    func toggleIgnoresAutoFade(id: UUID) {
+        guard let i = entries.firstIndex(where: { $0.id == id }) else { return }
+        entries[i].ignoresAutoFade.toggle()
+        save()
+    }
+
+    func setIsLastTanda(id: UUID, value: Bool) {
+        for i in entries.indices { entries[i].isLastTanda = false }
+        if value, let i = entries.firstIndex(where: { $0.id == id }) {
+            entries[i].isLastTanda = true
+        }
+        save()
+    }
+
     func setAutoGapApplied(id: UUID, applied: Bool) {
         guard let i = entries.firstIndex(where: { $0.id == id }) else { return }
         entries[i].autoGapApplied = applied
@@ -255,30 +273,29 @@ final class SetlistManager: ObservableObject {
         let metadata = (try? await asset.load(.metadata)) ?? []
 
         // Treat empty strings the same as missing: return nil so the ?? chain keeps searching.
-        func string(for id: AVMetadataIdentifier) -> String? {
-            guard let val = AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: id)
-                .first?.stringValue, !val.isEmpty else { return nil }
+        func string(for id: AVMetadataIdentifier) async -> String? {
+            guard let item = AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: id).first else { return nil }
+            guard let val = try? await item.load(.stringValue), !val.isEmpty else { return nil }
             return val
         }
 
         // Raw-key scan for formats (FLAC/Vorbis) where AVFoundation has no typed identifier,
         // also catches stray tags where identifier mapping fails.
-        func string(forRawKey rawKey: String) -> String? {
-            guard let val = metadata
-                .first(where: { ($0.key as? String)?.lowercased() == rawKey.lowercased() })?
-                .stringValue, !val.isEmpty else { return nil }
+        func string(forRawKey rawKey: String) async -> String? {
+            guard let item = metadata.first(where: { ($0.key as? String)?.lowercased() == rawKey.lowercased() }) else { return nil }
+            guard let val = try? await item.load(.stringValue), !val.isEmpty else { return nil }
             return val
         }
 
         // Skips Apple machine-generated COMM frames (iTunNORM, iTunSMPB, iTunPGAP, etc.) that
         // store binary data as hex strings — AVFoundation returns all COMM frames and .first may
         // land on one of these instead of the human-readable comment.
-        func humanReadableComment() -> String? {
+        func humanReadableComment() async -> String? {
             let items = AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: .id3MetadataComments)
             for item in items {
-                let info = item.extraAttributes?[AVMetadataExtraAttributeKey.info] as? String ?? ""
+                let info = (try? await item.load(.extraAttributes))?[AVMetadataExtraAttributeKey.info] as? String ?? ""
                 guard !info.hasPrefix("iTun") else { continue }
-                if let val = item.stringValue, !val.isEmpty { return val }
+                if let val = try? await item.load(.stringValue), !val.isEmpty { return val }
             }
             return nil
         }
@@ -299,35 +316,39 @@ final class SetlistManager: ObservableObject {
 
         // M4A predefined genre: `gnre` atom stores an integer (ID3v1 index + 1).
         // Music.app uses this when the user picks from its genre dropdown rather than typing.
-        func predefinedGenreName() -> String? {
+        func predefinedGenreName() async -> String? {
             guard let item = AVMetadataItem.metadataItems(
                 from: metadata, filteredByIdentifier: .iTunesMetadataPredefinedGenre).first
             else { return nil }
-            if let str = item.stringValue, !str.isEmpty { return str }
-            guard let n = item.numberValue?.intValue, n > 0, n <= id3GenreNames.count
+            if let str = try? await item.load(.stringValue), !str.isEmpty { return str }
+            guard let n = (try? await item.load(.numberValue))?.intValue, n > 0, n <= id3GenreNames.count
             else { return nil }
             return id3GenreNames[n - 1]
         }
 
-        let title = string(for: .commonIdentifierTitle)
+        let title = await string(for: .commonIdentifierTitle)
             ?? url.deletingPathExtension().lastPathComponent
-        let artist = string(for: .commonIdentifierArtist) ?? ""
+        let artist = await string(for: .commonIdentifierArtist) ?? ""
         // Genre: search across all common tagging conventions; empty values are treated as absent
         // so a stale empty tag in one keyspace doesn't block lookup in the next.
-        let genre = resolveID3Genre(string(for: .id3MetadataContentType))   // MP3: TCON frame (resolved)
-            ?? string(for: .iTunesMetadataUserGenre)                          // M4A: ©gen text atom
-            ?? predefinedGenreName()                                           // M4A: gnre integer atom (Music.app dropdown)
-            ?? string(forRawKey: "genre")                                      // FLAC/Vorbis comment
-            ?? resolveID3Genre(string(forRawKey: "tcon"))                      // raw ID3 key fallback (resolved)
-            ?? SetlistManager.genreFromAudioToolbox(url)                       // AIFF ID3 chunk (AVFoundation misses these)
-            ?? ""
+        // (await cannot appear inside ?? autoclosures, so each lookup is a separate binding.)
+        let genreID3        = resolveID3Genre(await string(for: .id3MetadataContentType)) // MP3: TCON frame (resolved)
+        let genreiTunes     = await string(for: .iTunesMetadataUserGenre)                  // M4A: ©gen text atom
+        let genrePredefined = await predefinedGenreName()                                  // M4A: gnre integer atom (Music.app dropdown)
+        let genreVorbis     = await string(forRawKey: "genre")                             // FLAC/Vorbis comment
+        let genreRawTcon    = resolveID3Genre(await string(forRawKey: "tcon"))             // raw ID3 key fallback (resolved)
+        let genre = genreID3 ?? genreiTunes ?? genrePredefined ?? genreVorbis
+            ?? genreRawTcon ?? SetlistManager.genreFromAudioToolbox(url) ?? ""             // AIFF ID3 chunk (AVFoundation misses these)
 
-        let year: Int? = string(for: .id3MetadataYear).flatMap { Int($0) }
-            ?? string(for: .iTunesMetadataReleaseDate).flatMap { Int(String($0.prefix(4))) }
-        let comment = humanReadableComment()
-            ?? string(for: .iTunesMetadataUserComment)
-        let albumArtist = string(for: .id3MetadataBand)
-            ?? string(for: .iTunesMetadataAlbumArtist)
+        let yearFromID3    = (await string(for: .id3MetadataYear)).flatMap { Int($0) }
+        let yearFromiTunes = (await string(for: .iTunesMetadataReleaseDate)).flatMap { Int(String($0.prefix(4))) }
+        let year: Int?     = yearFromID3 ?? yearFromiTunes
+        let commentFromID3    = await humanReadableComment()
+        let commentFromiTunes = await string(for: .iTunesMetadataUserComment)
+        let comment = commentFromID3 ?? commentFromiTunes
+        let albumArtistFromID3    = await string(for: .id3MetadataBand)
+        let albumArtistFromiTunes = await string(for: .iTunesMetadataAlbumArtist)
+        let albumArtist = albumArtistFromID3 ?? albumArtistFromiTunes
 
         return Track(
             title: title,
@@ -346,10 +367,10 @@ final class SetlistManager: ObservableObject {
               let af = audioFile else { return nil }
         defer { AudioFileClose(af) }
 
-        var dataSize = UInt32(MemoryLayout<CFDictionary?>.size)
-        var cfDict: CFDictionary?
-        guard AudioFileGetProperty(af, kAudioFilePropertyInfoDictionary, &dataSize, &cfDict) == noErr,
-              let info = cfDict as? [String: Any],
+        var dataSize = UInt32(MemoryLayout<CFDictionary>.size)
+        var cfDictRef: Unmanaged<CFDictionary>? = nil
+        guard AudioFileGetProperty(af, kAudioFilePropertyInfoDictionary, &dataSize, &cfDictRef) == noErr,
+              let info = cfDictRef?.takeRetainedValue() as? [String: Any],
               let genre = info[kAFInfoDictionary_Genre as String] as? String,
               !genre.isEmpty else { return nil }
         return genre

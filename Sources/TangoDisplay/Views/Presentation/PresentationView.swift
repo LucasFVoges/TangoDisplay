@@ -125,12 +125,14 @@ struct PresentationView: View {
             PlayingView(
                 state: appState.displayState,
                 profile: activeProfile,
+                isLastTandaActive: appState.isLastTandaActive,
                 settings: appState.settings
             )
         case .cortina:
             CortinaView(
                 state: appState.displayState,
                 profile: activeProfile,
+                isLastTandaActive: appState.isLastTandaActive,
                 settings: appState.settings
             )
         case .idle, .paused:

@@ -12,7 +12,7 @@ import TangoDisplayCore
 /// fetches queue[2] (the track after current) and delivers it via onNextTrackUpdate.
 /// Tanda position counting uses the history-based fallback (no backward-looking context
 /// is available from a queue that starts at the current track).
-final class SwinsianMonitor {
+final class SwinsianMonitor: @unchecked Sendable {
 
     private static let notifyPlaying = "com.swinsian.Swinsian-Track-Playing"
     private static let notifyPaused  = "com.swinsian.Swinsian-Track-Paused"

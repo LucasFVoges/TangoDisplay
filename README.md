@@ -135,6 +135,9 @@ Key design decisions:
 
 ## Changelog
 
+### v3.9.0
+- **New: Last Tanda** — Signal the final tanda of your milonga to the audience. A **Last Tanda** toggle in the **Live** screen activates the label on both the cortina (coming-up section) and every dance track in the tanda — works with any player source. The label text, colour, and font are configured in **Appearance Settings › Last Tanda**; position is orderable in the **Text Order** drag list for both Dance Tracks and Cortinas — Coming Up. When using the Built-in Player, right-click any cortina in the setlist and select **Mark as Last Tanda** to pre-schedule activation — TangoDisplay activates the label automatically when that cortina starts and clears it when the next cortina begins. A red flag icon appears on the marked setlist row.
+
 ### v3.8.0
 - **New (Built-In Player):** Auto-fade cortinas. Enable **Auto-fade all cortinas** in **Settings › Player › Built-in Player** to automatically fade out cortinas and advance to the next track after a configurable play time. An orange marker on the seek bar shows exactly when the fade will begin. Configure the play time with the **Cortina play time** slider (5–120 s); TangoDisplay adjusts automatically for short cortinas so the fade always completes before the track ends. Per-track override: right-click any cortina and select **Skip Auto-fade** to disable auto-fade for that track only — the fade buttons remain active for manual control. The option is hidden once fading has started. When auto-fade is active, the Fade & Stop and Fade & Continue buttons are disabled — the auto-fade handles the transition automatically. An orange dot and "Auto-fade: on" label appear in the setlist footer when the feature is enabled.
 

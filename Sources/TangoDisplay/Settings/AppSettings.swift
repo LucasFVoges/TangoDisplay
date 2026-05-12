@@ -20,6 +20,9 @@ final class AppSettings: ObservableObject {
     @Published var idleMessage: String {
         didSet { UserDefaults.standard.set(idleMessage, forKey: kPrefix + "idleMessage") }
     }
+    @Published var lastTandaLabel: String {
+        didSet { UserDefaults.standard.set(lastTandaLabel, forKey: kPrefix + "lastTandaLabel") }
+    }
 
     // MARK: - Cortina rules
 
@@ -125,6 +128,14 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(autoGapIgnoreFirstTrack, forKey: kPrefix + "autoGapIgnoreFirstTrack") }
     }
 
+    @Published var autoFadeCortinasEnabled: Bool {
+        didSet { UserDefaults.standard.set(autoFadeCortinasEnabled, forKey: kPrefix + "autoFadeCortinasEnabled") }
+    }
+
+    @Published var cortinaPlayTime: Double {
+        didSet { UserDefaults.standard.set(cortinaPlayTime, forKey: kPrefix + "cortinaPlayTime") }
+    }
+
     // MARK: - Built-in player track info
 
     @Published var duplicateTrackProtection: Bool {
@@ -174,9 +185,10 @@ final class AppSettings: ObservableObject {
 
     init() {
         let ud = UserDefaults.standard
-        cortinaLabel  = ud.string(forKey: kPrefix + "cortinaLabel")  ?? "CORTINA"
-        nextUpLabel   = ud.string(forKey: kPrefix + "nextUpLabel")   ?? "COMING UP"
-        idleMessage   = ud.string(forKey: kPrefix + "idleMessage")   ?? ""
+        cortinaLabel    = ud.string(forKey: kPrefix + "cortinaLabel")    ?? "CORTINA"
+        nextUpLabel     = ud.string(forKey: kPrefix + "nextUpLabel")     ?? "COMING UP"
+        idleMessage     = ud.string(forKey: kPrefix + "idleMessage")     ?? ""
+        lastTandaLabel  = ud.string(forKey: kPrefix + "lastTandaLabel")  ?? ""
         useAllowlist  = ud.object(forKey: kPrefix + "useAllowlist")
                            .flatMap { $0 as? Bool } ?? true
         allowlistGenres = AppSettings.parseGenres(
@@ -218,6 +230,8 @@ final class AppSettings: ObservableObject {
         autoGapEnabled = ud.object(forKey: kPrefix + "autoGapEnabled").flatMap { $0 as? Bool } ?? false
         autoGapDuration = ud.object(forKey: kPrefix + "autoGapDuration").flatMap { $0 as? Double } ?? 4.0
         autoGapIgnoreFirstTrack = ud.object(forKey: kPrefix + "autoGapIgnoreFirstTrack").flatMap { $0 as? Bool } ?? true
+        autoFadeCortinasEnabled = ud.object(forKey: kPrefix + "autoFadeCortinasEnabled").flatMap { $0 as? Bool } ?? false
+        cortinaPlayTime = ud.object(forKey: kPrefix + "cortinaPlayTime").flatMap { $0 as? Double } ?? 30.0
         duplicateTrackProtection = ud.object(forKey: kPrefix + "duplicateTrackProtection")
             .flatMap { $0 as? Bool } ?? false
         showYear = ud.object(forKey: kPrefix + "showYear").flatMap { $0 as? Bool } ?? true
