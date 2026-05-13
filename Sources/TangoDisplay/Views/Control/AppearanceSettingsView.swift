@@ -3,343 +3,49 @@ import SwiftUI
 import TangoDisplayCore
 import UniformTypeIdentifiers
 
+private enum AppearanceTab: CaseIterable {
+    case visibility, text, colours, artworkTransition, cortina, lastTanda
+
+    var displayName: String {
+        switch self {
+        case .visibility:         return "Visibility"
+        case .text:               return "Text"
+        case .colours:            return "Colours"
+        case .artworkTransition:  return "Artwork & Motion"
+        case .cortina:            return "Cortina"
+        case .lastTanda:          return "Last Tanda"
+        }
+    }
+}
+
 struct AppearanceSettingsView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var settings: AppSettings
 
-    private let availableFonts: [String] = ["System"] + NSFontManager.shared.availableFontFamilies.sorted()
-
-    // Working copy — edits sync to appState.draftProfile for instant live reflection
+    @State private var selectedTab: AppearanceTab = .visibility
     @State private var working: AppearanceProfile = .classic
+    @State private var savedWorking: AppearanceProfile = .classic
     @State private var showingSaveSheet = false
     @State private var newProfileName = ""
     @State private var didSave = false
-    @State private var savedWorking: AppearanceProfile = .classic
     @State private var bgThumbnail: NSImage? = nil
+    @State private var danceDragItem: DisplayTextItem? = nil
+    @State private var cortinaTrackDragItem: DisplayTextItem? = nil
+    @State private var cortinaUpDragItem: DisplayTextItem? = nil
 
     private var workingIsBuiltIn: Bool { working.isBuiltIn }
     private var isDirty: Bool { working != savedWorking }
 
     var body: some View {
-        Form {
-            Section {
-                Picker("Style", selection: $working.transitionStyle) {
-                    ForEach(TransitionStyle.allCases, id: \.self) { style in
-                        Text(style.displayName).tag(style)
-                    }
-                }
-                HStack {
-                    Text("Duration")
-                    Slider(value: $working.transitionDuration, in: 0...2, step: 0.1)
-                    Text(String(format: "%.1fs", working.transitionDuration))
-                        .monospacedDigit()
-                        .frame(width: 36)
-                }
-            } header: {
-                Text("Transition")
-                    .foregroundColor(ControlTheme.accent)
-            }
-
-            Section {
-                colorRow("Background",    hex: $working.backgroundColor)
-                colorRow("Artist",        hex: $working.artistColor)
-                colorRow("Title",         hex: $working.titleColor)
-                colorRow("Genre/label",   hex: $working.genreColor)
-                colorRow("Year",          hex: $working.yearColor)
-                colorRow("Singer",        hex: $working.singerColor)
-                colorRow("Track counter", hex: $working.trackCounterColor)
-                colorRow("Cortina label", hex: $working.cortinaLabelColor)
-                colorRow("Next up label", hex: $working.nextUpLabelColor)
-                colorRow("Cortina artist", hex: $working.cortinaArtistColor)
-                colorRow("Cortina title",  hex: $working.cortinaTitleColor)
-                colorRow("Idle message",  hex: $working.idleMessageColor)
-            } header: {
-                Text("Colors")
-                    .foregroundColor(ControlTheme.accent)
-            }
-
-            Section {
-                HStack {
-                    Text("").frame(maxWidth: .infinity, alignment: .leading)
-                    Text("Dance").frame(width: 70, alignment: .center).foregroundColor(.secondary).font(.subheadline)
-                    Text("Cortina")
-                        .frame(width: 70, alignment: .center)
-                        .foregroundColor(working.showNextTrackDuringCortina ? .secondary : .secondary.opacity(0.4))
-                        .font(.subheadline)
-                }
-                visibilityRow("Genre",   dance: $working.showGenreDance,   cortina: $working.showGenreCortina)
-                visibilityRow("Artist",  dance: $working.showArtistDance,  cortina: $working.showArtistCortina)
-                visibilityRow("Year",    dance: $working.showYearDance,    cortina: $working.showYearCortina)
-                visibilityRow("Title",   dance: $working.showTitleDance,   cortina: $working.showTitleCortina)
-                visibilityRow("Singer",  dance: $working.showSingerDance,  cortina: $working.showSingerCortina)
-                visibilityRow("Artwork", dance: $working.showArtworkDance, cortina: $working.showArtworkCortina)
-
-                Divider()
-
-                Toggle("Show cortina track during cortina", isOn: $working.showCortinaTrackDuringCortina)
-                cortinaOnlyVisibilityRow("Cortina Artist", cortina: $working.showCortinaTrackArtist,
-                                        enabled: working.showCortinaTrackDuringCortina)
-                cortinaOnlyVisibilityRow("Cortina Title",  cortina: $working.showCortinaTrackTitle,
-                                        enabled: working.showCortinaTrackDuringCortina)
-
-                Divider()
-
-                Toggle("Show next track during cortina", isOn: $working.showNextTrackDuringCortina)
-            } header: {
-                Text("Field Visibility")
-                    .foregroundColor(ControlTheme.accent)
-            } footer: {
-                Label {
-                    Text("Controls which fields appear on the display. The Cortina column applies when 'Show next track during cortina' is enabled.")
-                } icon: {
-                    Image(systemName: "info.circle")
-                }
-            }
-
-            Section {
-                if working.showArtworkDance || working.showArtworkCortina {
-                    HStack {
-                        Text("Opacity")
-                        Slider(value: $working.albumArtworkOpacity, in: 0...1)
-                        Text(String(format: "%.0f%%", working.albumArtworkOpacity * 100))
-                            .monospacedDigit()
-                            .frame(width: 36)
-                    }
-                    HStack {
-                        Text("Scale")
-                        Slider(value: $working.albumArtworkScale, in: 0.1...5.0)
-                        Text(String(format: "%.2f×", working.albumArtworkScale))
-                            .monospacedDigit()
-                            .frame(width: 44)
-                    }
-                    HStack {
-                        Text("Horizontal")
-                        Slider(value: $working.albumArtworkOffsetX, in: -2000...2000)
-                        Text(String(format: "%+.0f", working.albumArtworkOffsetX))
-                            .monospacedDigit()
-                            .frame(width: 48)
-                    }
-                    HStack {
-                        Text("Vertical")
-                        Slider(value: $working.albumArtworkOffsetY, in: -2000...2000)
-                        Text(String(format: "%+.0f", working.albumArtworkOffsetY))
-                            .monospacedDigit()
-                            .frame(width: 48)
-                    }
-                } else {
-                    Text("Enable artwork in Field Visibility to configure.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            } header: {
-                Text("Album Artwork")
-                    .foregroundColor(ControlTheme.accent)
-            }
-
-            Section {
-                HStack(spacing: 12) {
-                    // Thumbnail or placeholder
-                    Group {
-                        if let thumb = bgThumbnail {
-                            Image(nsImage: thumb)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 40, height: 40)
-                                .clipped()
-                                .cornerRadius(4)
-                        } else {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.secondary.opacity(0.2))
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(.secondary)
-                                )
-                        }
-                    }
-                    Spacer()
-                    Button(working.backgroundImageFilename == nil ? "Pick Image…" : "Change Image…") {
-                        pickImage()
-                    }
-                    .buttonStyle(.bordered)
-                    if working.backgroundImageFilename != nil {
-                        Button("Clear") { clearImage() }
-                            .buttonStyle(.bordered)
-                            .foregroundColor(.red)
-                    }
-                }
-
-                if working.backgroundImageFilename != nil {
-                    HStack {
-                        Text("Opacity")
-                        Slider(value: $working.backgroundImageOpacity, in: 0...1)
-                        Text(String(format: "%.0f%%", working.backgroundImageOpacity * 100))
-                            .monospacedDigit()
-                            .frame(width: 36)
-                    }
-                    HStack {
-                        Text("Scale")
-                        Slider(value: $working.backgroundImageScale, in: 0.1...5.0)
-                        Text(String(format: "%.2f×", working.backgroundImageScale))
-                            .monospacedDigit()
-                            .frame(width: 44)
-                    }
-                    HStack {
-                        Text("Horizontal")
-                        Slider(value: $working.backgroundImageOffsetX, in: -2000...2000)
-                        Text(String(format: "%+.0f", working.backgroundImageOffsetX))
-                            .monospacedDigit()
-                            .frame(width: 48)
-                    }
-                    HStack {
-                        Text("Vertical")
-                        Slider(value: $working.backgroundImageOffsetY, in: -2000...2000)
-                        Text(String(format: "%+.0f", working.backgroundImageOffsetY))
-                            .monospacedDigit()
-                            .frame(width: 48)
-                    }
-                }
-            } header: {
-                Text("Background Image")
-                    .foregroundColor(ControlTheme.accent)
-            }
-
-            Section {
-                fontRow("Cortina Lbl", name: $working.cortinaLabelFontName, size: $working.cortinaLabelFontSize,
-                        bold: $working.cortinaLabelFontBold, italic: $working.cortinaLabelFontItalic)
-                fontRow("Next Up Lbl", name: $working.nextUpLabelFontName,  size: $working.nextUpLabelFontSize,
-                        bold: $working.nextUpLabelFontBold,  italic: $working.nextUpLabelFontItalic)
-                fontRow("Idle Msg",    name: $working.idleMessageFontName,  size: $working.idleMessageFontSize,
-                        bold: $working.idleMessageFontBold,  italic: $working.idleMessageFontItalic)
-                Divider()
-                fontRow("Artist", name: $working.artistFontName, size: $working.artistFontSize,
-                        bold: $working.artistFontBold, italic: $working.artistFontItalic)
-                fontRow("Title",  name: $working.titleFontName,  size: $working.titleFontSize,
-                        bold: $working.titleFontBold,  italic: $working.titleFontItalic)
-                fontRow("Genre",  name: $working.genreFontName,  size: $working.genreFontSize,
-                        bold: $working.genreFontBold,  italic: $working.genreFontItalic)
-                fontRow("Year", name: $working.yearFontName, size: $working.yearFontSize,
-                        bold: $working.yearFontBold, italic: $working.yearFontItalic)
-                Picker("Singer source", selection: $working.singerSource) {
-                    ForEach(SingerSource.allCases, id: \.self) { source in
-                        Text(source.displayName).tag(source)
-                    }
-                }
-                .pickerStyle(.segmented)
-                fontRow("Singer", name: $working.singerFontName, size: $working.singerFontSize,
-                        bold: $working.singerFontBold, italic: $working.singerFontItalic)
-                Divider()
-                fontRow("Cortina Art.", name: $working.cortinaArtistFontName, size: $working.cortinaArtistFontSize,
-                        bold: $working.cortinaArtistFontBold, italic: $working.cortinaArtistFontItalic)
-                fontRow("Cortina Ttl.", name: $working.cortinaTitleFontName,  size: $working.cortinaTitleFontSize,
-                        bold: $working.cortinaTitleFontBold,  italic: $working.cortinaTitleFontItalic)
-            } header: {
-                Text("Fonts")
-                    .foregroundColor(ControlTheme.accent)
-            }
-
-            Section {
-                HStack {
-                    Text("Label text")
-                    Spacer()
-                    TextField("e.g. LAST TANDA", text: $settings.lastTandaLabel)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 200)
-                }
-                colorRow("Color", hex: $working.lastTandaLabelColor)
-                fontRow("Font", name: $working.lastTandaLabelFontName, size: $working.lastTandaLabelFontSize,
-                        bold: $working.lastTandaLabelFontBold, italic: $working.lastTandaLabelFontItalic)
-                Toggle("Show in display", isOn: $working.showLastTandaLabel)
-            } header: {
-                Text("Last Tanda")
-                    .foregroundColor(ControlTheme.accent)
-            } footer: {
-                Label {
-                    Text("Shown when Last Tanda mode is active. Mark a cortina via right-click in the setlist.")
-                } icon: {
-                    Image(systemName: "info.circle")
-                }
-            }
-
-            Section {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Dance Tracks")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 4)
-                    orderRows(items: $working.danceItemOrder)
-                }
-
-                Divider()
-                    .padding(.vertical, 4)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Cortinas — Cortina Track")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 4)
-                    orderRows(items: $working.cortinaTrackItemOrder)
-                }
-
-                Divider()
-                    .padding(.vertical, 4)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Cortinas — Coming Up")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 4)
-                    orderRows(items: $working.cortinaItemOrder)
-                }
-            } header: {
-                Text("Text Order")
-                    .foregroundColor(ControlTheme.accent)
-            } footer: {
-                Label {
-                    Text("Sets the display order only. Use Field Visibility to show or hide individual fields.")
-                } icon: {
-                    Image(systemName: "info.circle")
-                }
-            }
-
-            Section {
-                HStack {
-                    Spacer()
-                    Button("Save as New Profile…") {
-                        newProfileName = working.name
-                        showingSaveSheet = true
-                    }
-                    .buttonStyle(.bordered)
-                    Button("Save") { saveProfile() }
-                        .buttonStyle(.borderedProminent)
-                }
-                if isDirty {
-                    HStack {
-                        Spacer()
-                        Label("Unsaved changes", systemImage: "exclamationmark.circle.fill")
-                            .foregroundColor(.orange)
-                            .font(.caption)
-                    }
-                    .transition(.opacity)
-                }
-                if didSave {
-                    HStack {
-                        Spacer()
-                        Label("Saved!", systemImage: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                            .font(.caption)
-                    }
-                    .transition(.opacity)
-                }
-                if workingIsBuiltIn {
-                    Text("Saving will create a new custom profile based on \(working.name).")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
+        VStack(spacing: 0) {
+            profileHeader
+            Divider()
+            tabBar
+            Divider()
+            tabContent
+            Divider()
+            saveFooter
         }
-        .formStyle(.grouped)
-        .padding()
         .onAppear {
             loadWorkingCopy()
             appState.draftProfile = working
@@ -356,155 +62,106 @@ struct AppearanceSettingsView: View {
         .sheet(isPresented: $showingSaveSheet) { saveSheet }
     }
 
+    // MARK: - Profile header
+
+    private var profileHeader: some View {
+        HStack(spacing: 6) {
+            Text("Editing Profile:")
+                .foregroundColor(.secondary)
+            Text(working.name)
+                .fontWeight(.semibold)
+            Spacer()
+            Button("Save as New Profile…") {
+                newProfileName = working.name
+                showingSaveSheet = true
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Tab bar
+
+    private var tabBar: some View {
+        HStack(spacing: 0) {
+            ForEach(AppearanceTab.allCases, id: \.displayName) { tab in
+                Button(action: { selectedTab = tab }) {
+                    VStack(spacing: 4) {
+                        Text(tab.displayName)
+                            .font(.system(size: 13))
+                            .lineLimit(1)
+                            .foregroundColor(selectedTab == tab ? .accentColor : .secondary)
+                        Rectangle()
+                            .fill(selectedTab == tab ? Color.accentColor : Color.clear)
+                            .frame(height: 2)
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 4)
+    }
+
+    // MARK: - Tab content
+
     @ViewBuilder
-    private func orderRows(items: Binding<[DisplayTextItem]>) -> some View {
-        ForEach(items.wrappedValue.indices, id: \.self) { index in
-            HStack {
-                Image(systemName: "line.3.horizontal")
+    private var tabContent: some View {
+        switch selectedTab {
+        case .visibility:
+            AppearanceVisibilityTab(working: $working,
+                                    danceDragItem: $danceDragItem,
+                                    cortinaTrackDragItem: $cortinaTrackDragItem,
+                                    cortinaUpDragItem: $cortinaUpDragItem)
+        case .text:
+            AppearanceTextTab(working: $working)
+        case .colours:
+            AppearanceColoursTab(working: $working)
+        case .artworkTransition:
+            AppearanceArtworkTab(working: $working,
+                                 bgThumbnail: bgThumbnail,
+                                 onPickImage: pickImage,
+                                 onClearImage: clearImage)
+        case .cortina:
+            AppearanceCortinaTab(working: $working)
+        case .lastTanda:
+            AppearanceLastTandaTab(working: $working)
+        }
+    }
+
+    // MARK: - Save footer
+
+    private var saveFooter: some View {
+        HStack(spacing: 12) {
+            if workingIsBuiltIn {
+                Text("Saving will create a new custom profile based on \(working.name).")
+                    .font(.caption)
                     .foregroundColor(.secondary)
-                    .frame(width: 20)
-                Text(items.wrappedValue[index].displayName)
-                Spacer()
-                Button {
-                    items.wrappedValue.swapAt(index, index - 1)
-                } label: {
-                    Image(systemName: "chevron.up")
-                }
-                .buttonStyle(.borderless)
-                .disabled(index == 0)
-                Button {
-                    items.wrappedValue.swapAt(index, index + 1)
-                } label: {
-                    Image(systemName: "chevron.down")
-                }
-                .buttonStyle(.borderless)
-                .disabled(index == items.wrappedValue.count - 1)
             }
-        }
-    }
-
-    private func cortinaOnlyVisibilityRow(_ label: String, cortina: Binding<Bool>, enabled: Bool) -> some View {
-        HStack {
-            Text(label).frame(maxWidth: .infinity, alignment: .leading)
-            Spacer().frame(width: 70)
-            Toggle("", isOn: cortina).labelsHidden().frame(width: 70, alignment: .center)
-                .disabled(!enabled)
-        }
-    }
-
-    private func visibilityRow(_ label: String, dance: Binding<Bool>, cortina: Binding<Bool>) -> some View {
-        HStack {
-            Text(label).frame(maxWidth: .infinity, alignment: .leading)
-            Toggle("", isOn: dance).labelsHidden().frame(width: 70, alignment: .center)
-            Toggle("", isOn: cortina).labelsHidden().frame(width: 70, alignment: .center)
-                .disabled(!working.showNextTrackDuringCortina)
-        }
-    }
-
-    private func colorRow(_ label: String, hex: Binding<String>) -> some View {
-        HStack {
-            Text(label)
             Spacer()
-            ColorPicker("", selection: Binding(
-                get: { Color(hex: hex.wrappedValue) },
-                set: { hex.wrappedValue = $0.hexString }
-            ))
-            .labelsHidden()
-            .frame(width: 44)
-        }
-    }
-
-    private func fontRow(_ label: String, name: Binding<String>, size: Binding<Double>,
-                         bold: Binding<Bool>, italic: Binding<Bool>) -> some View {
-        HStack {
-            Text(label)
-                .frame(width: 85, alignment: .leading)
-            Picker("", selection: name) {
-                ForEach(availableFonts, id: \.self) { family in
-                    Text(family).tag(family)
-                }
+            if isDirty {
+                Label("Unsaved changes", systemImage: "exclamationmark.circle.fill")
+                    .foregroundColor(.orange)
+                    .font(.caption)
+                    .transition(.opacity)
             }
-            .labelsHidden()
-            .frame(width: 180)
-            Spacer()
-            Stepper(value: size, in: 8...200, step: 2) {
-                Text(String(format: "%.0fpt", size.wrappedValue))
-                    .monospacedDigit()
-                    .frame(width: 44)
+            if didSave {
+                Label("Saved!", systemImage: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                    .transition(.opacity)
             }
-            Toggle("B", isOn: bold)
-                .toggleStyle(.button)
-                .font(.system(size: 12, weight: .bold))
-                .help("Bold")
-            Toggle("I", isOn: italic)
-                .toggleStyle(.button)
-                .font(.system(size: 12).italic())
-                .help("Italic")
+            Button("Save") { saveProfile() }
+                .buttonStyle(.borderedProminent)
         }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
     }
 
-    private func loadWorkingCopy() {
-        let all = appState.profileStore.allProfiles
-        if let id = appState.settings.activeProfileID,
-           let found = all.first(where: { $0.id == id }) {
-            working = found
-        } else {
-            working = .classic
-        }
-        savedWorking = working
-        appState.hasUnsavedAppearanceChanges = false
-        // Keep draft in sync so the live display reflects the freshly loaded profile.
-        // (The onChange(of: working) modifier only fires on changes, not the initial set.)
-        appState.draftProfile = working
-        reloadThumbnail()
-    }
-
-    private func reloadThumbnail() {
-        guard let filename = working.backgroundImageFilename else { bgThumbnail = nil; return }
-        let url = appState.profileStore.imageURL(for: filename)
-        bgThumbnail = NSImage(contentsOf: url)
-    }
-
-    private func pickImage() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.image]
-        panel.allowsMultipleSelection = false
-        panel.message = "Choose a background image"
-        guard panel.runModal() == .OK, let src = panel.url else { return }
-
-        let ext = src.pathExtension.isEmpty ? "jpg" : src.pathExtension
-        let filename = "\(working.id.uuidString).\(ext)"
-        let dest = appState.profileStore.imageURL(for: filename)
-        appState.profileStore.createImagesDirectoryIfNeeded()
-
-        // Remove previous image if it's a different file
-        if let old = working.backgroundImageFilename, old != filename {
-            try? FileManager.default.removeItem(
-                at: appState.profileStore.imageURL(for: old))
-        }
-
-        // Overwrite if same filename (profile already had an image)
-        if FileManager.default.fileExists(atPath: dest.path) {
-            try? FileManager.default.removeItem(at: dest)
-        }
-        try? FileManager.default.copyItem(at: src, to: dest)
-
-        working.backgroundImageFilename = filename
-        bgThumbnail = NSImage(contentsOf: dest)
-    }
-
-    private func clearImage() {
-        if let filename = working.backgroundImageFilename {
-            try? FileManager.default.removeItem(
-                at: appState.profileStore.imageURL(for: filename))
-        }
-        working.backgroundImageFilename = nil
-        working.backgroundImageOpacity = 1.0
-        working.backgroundImageScale = 1.0
-        working.backgroundImageOffsetX = 0.0
-        working.backgroundImageOffsetY = 0.0
-        bgThumbnail = nil
-    }
+    // MARK: - Save sheet
 
     private var saveSheet: some View {
         VStack(spacing: 16) {
@@ -531,6 +188,80 @@ struct AppearanceSettingsView: View {
         .frame(minWidth: 320)
     }
 
+    // MARK: - Logic
+
+    private func loadWorkingCopy() {
+        let all = appState.profileStore.allProfiles
+        if let id = appState.settings.activeProfileID,
+           let found = all.first(where: { $0.id == id }) {
+            working = found
+        } else {
+            working = .classic
+        }
+        savedWorking = working
+        appState.hasUnsavedAppearanceChanges = false
+        appState.draftProfile = working
+        reloadThumbnail()
+    }
+
+    private func reloadThumbnail() {
+        guard let filename = working.backgroundImageFilename else { bgThumbnail = nil; return }
+        let url = appState.profileStore.imageURL(for: filename)
+        bgThumbnail = NSImage(contentsOf: url)
+    }
+
+    private func pickImage() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        panel.message = "Choose a background image"
+        guard panel.runModal() == .OK, let src = panel.url else { return }
+
+        let ext = src.pathExtension.isEmpty ? "jpg" : src.pathExtension
+        let filename = "\(working.id.uuidString).\(ext)"
+        let dest = appState.profileStore.imageURL(for: filename)
+        appState.profileStore.createImagesDirectoryIfNeeded()
+
+        if let old = working.backgroundImageFilename, old != filename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: old))
+        }
+        if FileManager.default.fileExists(atPath: dest.path) {
+            try? FileManager.default.removeItem(at: dest)
+        }
+        try? FileManager.default.copyItem(at: src, to: dest)
+
+        working.backgroundImageFilename = filename
+        bgThumbnail = NSImage(contentsOf: dest)
+    }
+
+    private func clearImage() {
+        if let filename = working.backgroundImageFilename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: filename))
+        }
+        working.backgroundImageFilename = nil
+        working.backgroundImageOpacity = 1.0
+        working.backgroundImageScale = 1.0
+        working.backgroundImageOffsetX = 0.0
+        working.backgroundImageOffsetY = 0.0
+        bgThumbnail = nil
+    }
+
+    private func saveProfile() {
+        if workingIsBuiltIn {
+            var copy = working
+            copy.id = UUID()
+            copy.isBuiltIn = false
+            try? appState.profileStore.save(copy)
+            appState.settings.activeProfileID = copy.id
+        } else {
+            try? appState.profileStore.save(working)
+            savedWorking = working
+            appState.hasUnsavedAppearanceChanges = false
+            appState.draftProfile = working
+        }
+        showSaveConfirmation()
+    }
+
     private func saveNewProfile() {
         let trimmed = newProfileName.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
@@ -541,24 +272,6 @@ struct AppearanceSettingsView: View {
         try? appState.profileStore.save(newProfile)
         appState.settings.activeProfileID = newProfile.id
         showingSaveSheet = false
-    }
-
-    private func saveProfile() {
-        if workingIsBuiltIn {
-            var copy = working
-            copy.id = UUID()
-            copy.isBuiltIn = false
-            try? appState.profileStore.save(copy)
-            appState.settings.activeProfileID = copy.id
-            // activeProfileID change fires loadWorkingCopy() which resets savedWorking
-        } else {
-            try? appState.profileStore.save(working)
-            savedWorking = working
-            appState.hasUnsavedAppearanceChanges = false
-            // Explicitly refresh draftProfile so the display picks up the change immediately
-            appState.draftProfile = working
-        }
-        showSaveConfirmation()
     }
 
     private func showSaveConfirmation() {

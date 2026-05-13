@@ -95,6 +95,12 @@ struct PlayerSettingsView: View {
                         .pickerStyle(.menu)
                         .fixedSize()
                     }
+                } header: {
+                    Text("Built-in Player")
+                        .foregroundColor(ControlTheme.accent)
+                }
+
+                Section {
                     LabeledContent("Cortina fade") {
                         HStack(spacing: 8) {
                             Slider(value: $settings.builtInFadeDuration, in: 1...15, step: 0.5)
@@ -106,7 +112,6 @@ struct PlayerSettingsView: View {
                     Text("Duration of the volume fade when using Fade & Stop or Fade & Continue.")
                         .font(.caption)
                         .foregroundColor(.secondary)
-
                     Toggle("Auto-fade all cortinas", isOn: $settings.autoFadeCortinasEnabled)
                     if settings.autoFadeCortinasEnabled {
                         LabeledContent("Cortina play time") {
@@ -122,7 +127,12 @@ struct PlayerSettingsView: View {
                             .foregroundColor(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                } header: {
+                    Text("Cortinas")
+                        .foregroundColor(ControlTheme.accent)
+                }
 
+                Section {
                     LabeledContent("Mark as played") {
                         Picker("", selection: $settings.markAsPlayedAfterCompletion) {
                             Text("After song ends").tag(true)
@@ -155,6 +165,12 @@ struct PlayerSettingsView: View {
                     Text("Warns before adding a track that is already in the setlist.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                } header: {
+                    Text("Playback")
+                        .foregroundColor(ControlTheme.accent)
+                }
+
+                Section {
                     Toggle("Auto-gap", isOn: $settings.autoGapEnabled)
                     if settings.autoGapEnabled {
                         LabeledContent("Minimum gap") {
@@ -174,7 +190,7 @@ struct PlayerSettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 } header: {
-                    Text("Built-in Player")
+                    Text("Gap")
                         .foregroundColor(ControlTheme.accent)
                 }
 

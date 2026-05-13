@@ -46,7 +46,7 @@ struct AdvancedSettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Track Info Transformations")
                 .font(.headline)
-                .foregroundColor(.accentColor)
+                .foregroundColor(ControlTheme.accent)
             Text("Use regular expressions to change how track information appears on the display. This does not modify your music files or tags.")
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -196,7 +196,7 @@ private struct FieldEditorPanel: View {
             HStack {
                 Text("Edit: \(field.displayName)")
                     .font(.headline)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(ControlTheme.accent)
                 Spacer()
                 Toggle("Enable transformation", isOn: Binding(
                     get: { currentRule.enabled },
@@ -310,7 +310,7 @@ private struct FieldEditorPanel: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Preview")
                 .font(.headline)
-                .foregroundColor(.accentColor)
+                .foregroundColor(ControlTheme.accent)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Test input")
