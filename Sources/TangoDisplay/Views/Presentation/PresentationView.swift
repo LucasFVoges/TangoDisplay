@@ -98,7 +98,7 @@ struct PresentationView: View {
                appState.displayState.mode == .playing,
                let pos = appState.displayState.tandaPosition {
                 Text(tandaLabel(pos))
-                    .font(.system(size: 28, weight: .light))
+                    .font(activeProfile.trackCounterFont)
                     .foregroundColor(activeProfile.trackCounterSwiftUIColor)
                     .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
                     .padding(24)

@@ -48,7 +48,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.11.0-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.11.1-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -134,6 +134,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.11.1
+- **Fix (Appearance Settings):** Track counter font changes in Appearance › Text now take effect on the display. Previously the font was hardcoded; only the colour setting was applied correctly.
 
 ### v3.11.0
 - **Improvement (Appearance Settings):** Complete UI redesign — the Appearance settings panel is now organised into six tabs: **Visibility** (field visibility toggles and text order), **Text** (fonts), **Colours** (colour pickers), **Artwork & Motion** (transitions, artwork, and background image), **Cortina** (cortina display options), and **Last Tanda** (last tanda label settings). Each tab focuses on a single concern, making the panel significantly easier to navigate.

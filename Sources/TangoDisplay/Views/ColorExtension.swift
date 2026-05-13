@@ -52,7 +52,8 @@ extension AppearanceProfile {
     var artistFont: Font { font(name: artistFontName, size: artistFontSize, bold: artistFontBold, italic: artistFontItalic) }
     var genreFont: Font  { font(name: genreFontName,  size: genreFontSize,  bold: genreFontBold,  italic: genreFontItalic) }
     var yearFont: Font   { font(name: yearFontName,   size: yearFontSize,   bold: yearFontBold,   italic: yearFontItalic) }
-    var singerFont: Font { font(name: singerFontName, size: singerFontSize, bold: singerFontBold, italic: singerFontItalic) }
+    var singerFont: Font        { font(name: singerFontName,       size: singerFontSize,       bold: singerFontBold,       italic: singerFontItalic) }
+    var trackCounterFont: Font  { font(name: trackCounterFontName, size: trackCounterFontSize, bold: trackCounterFontBold, italic: trackCounterFontItalic) }
 
     var cortinaLabelSwiftUIColor:  Color { Color(hex: cortinaLabelColor) }
     var cortinaArtistSwiftUIColor: Color { Color(hex: cortinaArtistColor) }
