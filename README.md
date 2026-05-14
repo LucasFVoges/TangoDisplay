@@ -16,6 +16,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 - **Multi-monitor support** — sends the presentation window to any connected display; move and toggle fullscreen from the control window
 - **Appearance profiles** — built-in (Classic, Modern, High Contrast) and unlimited custom profiles with per-field colors, fonts, and background image
 - **Background image** — any image with opacity, scale, and pan controls
+- **Artist Backgrounds** — per-profile list of artist name → background image mappings; when the playing track's artist contains a configured name (partial, case-insensitive, Unicode-safe match), that image replaces the profile background. Falls back to profile background image then background colour. Configurable opacity, scale, and position. Active only during dance tracks — clears automatically on pause or stop.
 - **Transitions** — configurable fade style and duration between tracks
 - **Global hotkeys** — `⌘⇧O` override, `⌘⇧P` pause display, `⌘⇧R` force-refresh, without switching windows
 - **Mirror mode** — live preview of the presentation window in the control window
@@ -48,7 +49,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.13.0-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.14.0-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -134,6 +135,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.14.0
+- **New (Appearance):** Artist Backgrounds. Add per-profile artist name → image mappings in **Appearance › Artwork & Motion**. When the playing track's artist contains a configured name (partial, case-insensitive, Unicode-safe match), the matching image is shown as the background instead of the profile background image. Falls back to profile background image, then background colour. Shared opacity, scale, horizontal, and vertical position controls. Active only while a dance track is playing — clears automatically on pause or stop.
 
 ### v3.13.0
 - **Improvement (Control Window):** Sidebar navigation sections renamed — "Settings" is now "Global Settings" and "Profiles" is now "Profile Settings". The Appearance settings item has moved into the Profile Settings section, reflecting that appearance is per-profile.

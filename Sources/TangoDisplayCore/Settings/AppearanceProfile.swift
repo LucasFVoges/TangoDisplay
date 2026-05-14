@@ -1,5 +1,17 @@
 import Foundation
 
+public struct ArtistBackground: Codable, Identifiable, Equatable {
+    public var id: UUID
+    public var artistName: String      // text to match against track.artist (partial, case-insensitive)
+    public var imageFilename: String?  // "artist-{uuid}.{ext}" stored in images dir
+
+    public init(id: UUID = UUID(), artistName: String, imageFilename: String? = nil) {
+        self.id = id
+        self.artistName = artistName
+        self.imageFilename = imageFilename
+    }
+}
+
 public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var id: UUID
     public var name: String
@@ -39,6 +51,14 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var backgroundImageScale: Double      // multiplier, 1.0 = fill screen
     public var backgroundImageOffsetX: Double    // points, horizontal pan
     public var backgroundImageOffsetY: Double    // points, vertical pan
+
+    // Artist Backgrounds — per-artist images that override the profile background when the track artist matches
+    public var artistBackgroundsEnabled: Bool
+    public var artistBackgrounds: [ArtistBackground]
+    public var artistBackgroundOpacity: Double
+    public var artistBackgroundScale: Double
+    public var artistBackgroundOffsetX: Double
+    public var artistBackgroundOffsetY: Double
 
     // Album artwork overlay (shown above background, below text; hidden during cortinas)
     public var showAlbumArtwork: Bool
@@ -135,9 +155,6 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var trackCounterFontBold:   Bool
     public var trackCounterFontItalic: Bool
 
-    // Background image text dimming
-    public var dimBackgroundBehindText: Bool
-
     public init(id: UUID, name: String, isBuiltIn: Bool,
                 titleFontName: String = "System", titleFontSize: Double = 72,
                 titleFontBold: Bool = true, titleFontItalic: Bool = false,
@@ -161,6 +178,12 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 backgroundImageScale: Double = 1.0,
                 backgroundImageOffsetX: Double = 0.0,
                 backgroundImageOffsetY: Double = 0.0,
+                artistBackgroundsEnabled: Bool = false,
+                artistBackgrounds: [ArtistBackground] = [],
+                artistBackgroundOpacity: Double = 1.0,
+                artistBackgroundScale: Double = 1.0,
+                artistBackgroundOffsetX: Double = 0.0,
+                artistBackgroundOffsetY: Double = 0.0,
                 showAlbumArtwork: Bool = false,
                 albumArtworkOpacity: Double = 1.0,
                 albumArtworkScale: Double = 1.0,
@@ -213,8 +236,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 lastTandaLabelColor: String = "#FF4444",
                 showLastTandaLabel: Bool = true,
                 trackCounterFontName: String = "System", trackCounterFontSize: Double = 36,
-                trackCounterFontBold: Bool = false, trackCounterFontItalic: Bool = false,
-                dimBackgroundBehindText: Bool = true) {
+                trackCounterFontBold: Bool = false, trackCounterFontItalic: Bool = false) {
         self.id = id
         self.name = name
         self.isBuiltIn = isBuiltIn
@@ -248,6 +270,12 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.backgroundImageScale = backgroundImageScale
         self.backgroundImageOffsetX = backgroundImageOffsetX
         self.backgroundImageOffsetY = backgroundImageOffsetY
+        self.artistBackgroundsEnabled = artistBackgroundsEnabled
+        self.artistBackgrounds        = artistBackgrounds
+        self.artistBackgroundOpacity  = artistBackgroundOpacity
+        self.artistBackgroundScale    = artistBackgroundScale
+        self.artistBackgroundOffsetX  = artistBackgroundOffsetX
+        self.artistBackgroundOffsetY  = artistBackgroundOffsetY
         self.showAlbumArtwork = showAlbumArtwork
         self.albumArtworkOpacity = albumArtworkOpacity
         self.albumArtworkScale = albumArtworkScale
@@ -315,7 +343,6 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.trackCounterFontSize     = trackCounterFontSize
         self.trackCounterFontBold     = trackCounterFontBold
         self.trackCounterFontItalic   = trackCounterFontItalic
-        self.dimBackgroundBehindText  = dimBackgroundBehindText
     }
 
     // Custom decoder so existing JSON lacking the image keys still loads cleanly.
@@ -355,6 +382,12 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         backgroundImageScale    = try c.decodeIfPresent(Double.self,  forKey: .backgroundImageScale)    ?? 1.0
         backgroundImageOffsetX  = try c.decodeIfPresent(Double.self,  forKey: .backgroundImageOffsetX)  ?? 0.0
         backgroundImageOffsetY  = try c.decodeIfPresent(Double.self,  forKey: .backgroundImageOffsetY)  ?? 0.0
+        artistBackgroundsEnabled = try c.decodeIfPresent(Bool.self,               forKey: .artistBackgroundsEnabled) ?? false
+        artistBackgrounds        = try c.decodeIfPresent([ArtistBackground].self, forKey: .artistBackgrounds)        ?? []
+        artistBackgroundOpacity  = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundOpacity)  ?? 1.0
+        artistBackgroundScale    = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundScale)    ?? 1.0
+        artistBackgroundOffsetX  = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundOffsetX)  ?? 0.0
+        artistBackgroundOffsetY  = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundOffsetY)  ?? 0.0
         showAlbumArtwork        = try c.decodeIfPresent(Bool.self,    forKey: .showAlbumArtwork)        ?? false
         albumArtworkOpacity     = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkOpacity)     ?? 1.0
         albumArtworkScale       = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkScale)       ?? 1.0
@@ -453,8 +486,6 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         trackCounterFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .trackCounterFontBold)   ?? false
         trackCounterFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .trackCounterFontItalic) ?? false
 
-        dimBackgroundBehindText = try c.decodeIfPresent(Bool.self, forKey: .dimBackgroundBehindText) ?? true
-
         // Migration: append .lastTandaLabel to order lists if absent
         if !danceItemOrder.contains(.lastTandaLabel) {
             danceItemOrder.append(.lastTandaLabel)
@@ -468,6 +499,20 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         switch singerSource {
         case .comments:    return track.comment
         case .albumArtist: return track.albumArtist
+        }
+    }
+
+    /// Returns the first artist background entry whose name is found within `artist` (partial,
+    /// case-insensitive, diacritic-insensitive match). Returns nil when the feature is disabled
+    /// or no entry matches.
+    public func matchingArtistBackground(for artist: String) -> ArtistBackground? {
+        guard artistBackgroundsEnabled else { return nil }
+        let needle = artist.trimmingCharacters(in: .whitespaces)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+        return artistBackgrounds.first { entry in
+            let key = entry.artistName.trimmingCharacters(in: .whitespaces)
+                .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+            return !key.isEmpty && needle.contains(key)
         }
     }
 

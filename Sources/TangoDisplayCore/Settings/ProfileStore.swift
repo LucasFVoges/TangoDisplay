@@ -102,10 +102,14 @@ public final class ProfileStore: ObservableObject {
         if FileManager.default.fileExists(atPath: fileURL.path) {
             try FileManager.default.removeItem(at: fileURL)
         }
-        // Clean up any associated background image
+        // Clean up any associated background images
         if let filename = profile.backgroundImageFilename {
-            let imgURL = imageURL(for: filename)
-            try? FileManager.default.removeItem(at: imgURL)
+            try? FileManager.default.removeItem(at: imageURL(for: filename))
+        }
+        for entry in profile.artistBackgrounds {
+            if let filename = entry.imageFilename {
+                try? FileManager.default.removeItem(at: imageURL(for: filename))
+            }
         }
         userProfiles.removeAll { $0.id == profile.id }
     }

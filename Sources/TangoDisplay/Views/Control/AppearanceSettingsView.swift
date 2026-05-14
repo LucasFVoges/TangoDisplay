@@ -29,12 +29,20 @@ struct AppearanceSettingsView: View {
     @State private var newProfileName = ""
     @State private var didSave = false
     @State private var bgThumbnail: NSImage? = nil
+    @State private var artistBgThumbnails: [UUID: NSImage] = [:]
     @State private var danceDragItem: DisplayTextItem? = nil
     @State private var cortinaTrackDragItem: DisplayTextItem? = nil
     @State private var cortinaUpDragItem: DisplayTextItem? = nil
 
     private var workingIsBuiltIn: Bool { working.isBuiltIn }
     private var isDirty: Bool { working != savedWorking }
+
+    private var hasInvalidArtistBackgrounds: Bool {
+        guard working.artistBackgroundsEnabled else { return false }
+        return working.artistBackgrounds.contains { entry in
+            entry.artistName.trimmingCharacters(in: .whitespaces).isEmpty || entry.imageFilename == nil
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -124,7 +132,12 @@ struct AppearanceSettingsView: View {
             AppearanceArtworkTab(working: $working,
                                  bgThumbnail: bgThumbnail,
                                  onPickImage: pickImage,
-                                 onClearImage: clearImage)
+                                 onClearImage: clearImage,
+                                 artistBgThumbnails: artistBgThumbnails,
+                                 onPickArtistImage: pickArtistImage(for:),
+                                 onClearArtistImage: clearArtistImage(for:),
+                                 onAddArtistBackground: addArtistBackground,
+                                 onRemoveArtistBackground: removeArtistBackground(_:))
         case .cortina:
             AppearanceCortinaTab(working: $working)
         case .lastTanda:
@@ -142,7 +155,12 @@ struct AppearanceSettingsView: View {
                     .foregroundColor(.secondary)
             }
             Spacer()
-            if isDirty {
+            if hasInvalidArtistBackgrounds {
+                Label("Each artist entry needs a name and an image.", systemImage: "exclamationmark.circle.fill")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .transition(.opacity)
+            } else if isDirty {
                 Label("Unsaved changes", systemImage: "exclamationmark.circle.fill")
                     .foregroundColor(.orange)
                     .font(.caption)
@@ -156,6 +174,7 @@ struct AppearanceSettingsView: View {
             }
             Button("Save") { saveProfile() }
                 .buttonStyle(.borderedProminent)
+                .disabled(hasInvalidArtistBackgrounds)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -202,6 +221,7 @@ struct AppearanceSettingsView: View {
         appState.hasUnsavedAppearanceChanges = false
         appState.draftProfile = working
         reloadThumbnail()
+        reloadArtistBgThumbnails()
     }
 
     private func reloadThumbnail() {
@@ -244,6 +264,68 @@ struct AppearanceSettingsView: View {
         working.backgroundImageOffsetX = 0.0
         working.backgroundImageOffsetY = 0.0
         bgThumbnail = nil
+    }
+
+    // MARK: - Artist backgrounds
+
+    private func reloadArtistBgThumbnails() {
+        artistBgThumbnails = [:]
+        for entry in working.artistBackgrounds {
+            guard let filename = entry.imageFilename else { continue }
+            let url = appState.profileStore.imageURL(for: filename)
+            if let img = NSImage(contentsOf: url) {
+                artistBgThumbnails[entry.id] = img
+            }
+        }
+    }
+
+    private func addArtistBackground() {
+        working.artistBackgrounds.append(ArtistBackground(artistName: ""))
+    }
+
+    private func removeArtistBackground(_ entry: ArtistBackground) {
+        if let filename = entry.imageFilename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: filename))
+            artistBgThumbnails.removeValue(forKey: entry.id)
+        }
+        working.artistBackgrounds.removeAll { $0.id == entry.id }
+    }
+
+    private func pickArtistImage(for entry: ArtistBackground) {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        let label = entry.artistName.isEmpty ? "this artist" : entry.artistName
+        panel.message = "Choose a background image for \(label)"
+        guard panel.runModal() == .OK, let src = panel.url else { return }
+
+        let ext = src.pathExtension.isEmpty ? "jpg" : src.pathExtension
+        let filename = "artist-\(entry.id.uuidString).\(ext)"
+        let dest = appState.profileStore.imageURL(for: filename)
+        appState.profileStore.createImagesDirectoryIfNeeded()
+
+        if let old = entry.imageFilename, old != filename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: old))
+        }
+        if FileManager.default.fileExists(atPath: dest.path) {
+            try? FileManager.default.removeItem(at: dest)
+        }
+        try? FileManager.default.copyItem(at: src, to: dest)
+
+        if let idx = working.artistBackgrounds.firstIndex(where: { $0.id == entry.id }) {
+            working.artistBackgrounds[idx].imageFilename = filename
+        }
+        artistBgThumbnails[entry.id] = NSImage(contentsOf: dest)
+    }
+
+    private func clearArtistImage(for entry: ArtistBackground) {
+        if let filename = entry.imageFilename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: filename))
+        }
+        if let idx = working.artistBackgrounds.firstIndex(where: { $0.id == entry.id }) {
+            working.artistBackgrounds[idx].imageFilename = nil
+        }
+        artistBgThumbnails.removeValue(forKey: entry.id)
     }
 
     private func saveProfile() {

@@ -7,7 +7,7 @@ The **Appearance** tab controls everything about how the dancer display looks. S
 | **Visibility** | Which fields are shown on the display, and the order they appear in |
 | **Text** | Font, size, and style for each text element |
 | **Colours** | Colour of each element on the dancer display |
-| **Artwork & Motion** | Transition style and duration, album artwork, and background image |
+| **Artwork & Motion** | Transition style and duration, album artwork, background image, and artist backgrounds |
 | **Cortina** | What is shown on-screen during a cortina |
 | **Last Tanda** | Last Tanda announcement label settings |
 
@@ -140,6 +140,26 @@ Artwork is fetched automatically from the playing track for all three player sou
 | **Vertical** | Pan the image up or down |
 
 Use Scale + Horizontal + Vertical to frame exactly the part of the image you want behind the text.
+
+### Artist Backgrounds
+
+Map specific artist names to background images. When enabled and the currently playing track's artist contains a configured name, the matching image is shown instead of the profile background image. If no artist matches, the display falls back to the profile background image, then to the background colour. The background clears automatically when the display is paused or no track is playing.
+
+| Control | Description |
+|---|---|
+| **Enable artist backgrounds** | Master switch for this feature |
+| **Add Artist…** | Adds a new entry to the list |
+| **Artist name field** | Text to match against the playing track's artist. Matching is partial, case-insensitive, and accent-insensitive — "troilo" matches "Anibal Troilo y su Orquesta" |
+| **Pick Image… / Change Image…** | Choose the background image for this artist entry |
+| **Clear** | Removes the image for this entry |
+| **✕** | Removes the entire entry |
+| **Opacity** | Opacity applied to all artist background images |
+| **Scale** | Zoom applied to all artist background images |
+| **Horizontal / Vertical** | Pan all artist background images |
+
+> Each entry must have both a name and an image before you can save. Entries missing either are flagged with a red indicator and the Save button is disabled until resolved.
+
+Priority order: **matching artist background → profile background image → background colour**
 
 ---
 

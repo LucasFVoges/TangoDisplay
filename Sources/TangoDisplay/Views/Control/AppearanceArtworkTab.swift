@@ -7,6 +7,11 @@ struct AppearanceArtworkTab: View {
     let bgThumbnail: NSImage?
     let onPickImage: () -> Void
     let onClearImage: () -> Void
+    let artistBgThumbnails: [UUID: NSImage]
+    let onPickArtistImage: (ArtistBackground) -> Void
+    let onClearArtistImage: (ArtistBackground) -> Void
+    let onAddArtistBackground: () -> Void
+    let onRemoveArtistBackground: (ArtistBackground) -> Void
 
     var body: some View {
         Form {
@@ -126,7 +131,6 @@ struct AppearanceArtworkTab: View {
                             .monospacedDigit()
                             .frame(width: 48)
                     }
-                    Toggle("Dim background behind text", isOn: $working.dimBackgroundBehindText)
                 }
             } header: {
                 Text("Background Image")
@@ -138,7 +142,138 @@ struct AppearanceArtworkTab: View {
                     Image(systemName: "info.circle")
                 }
             }
+
+            Section {
+                Toggle("Enable artist backgrounds", isOn: $working.artistBackgroundsEnabled)
+
+                if working.artistBackgroundsEnabled {
+                    ForEach($working.artistBackgrounds) { $entry in
+                        artistEntryRow(entry: $entry)
+                    }
+
+                    Button("Add Artist…") {
+                        onAddArtistBackground()
+                    }
+                    .buttonStyle(.bordered)
+
+                    if working.artistBackgrounds.contains(where: { $0.imageFilename != nil }) {
+                        HStack {
+                            Text("Opacity")
+                            Slider(value: $working.artistBackgroundOpacity, in: 0...1)
+                            Text(String(format: "%.0f%%", working.artistBackgroundOpacity * 100))
+                                .monospacedDigit()
+                                .frame(width: 36)
+                        }
+                        HStack {
+                            Text("Scale")
+                            Slider(value: $working.artistBackgroundScale, in: 0.1...5.0)
+                            Text(String(format: "%.2f×", working.artistBackgroundScale))
+                                .monospacedDigit()
+                                .frame(width: 44)
+                        }
+                        HStack {
+                            Text("Horizontal Position")
+                            Slider(value: $working.artistBackgroundOffsetX, in: -2000...2000)
+                            Text(String(format: "%+.0f", working.artistBackgroundOffsetX))
+                                .monospacedDigit()
+                                .frame(width: 48)
+                        }
+                        HStack {
+                            Text("Vertical Position")
+                            Slider(value: $working.artistBackgroundOffsetY, in: -2000...2000)
+                            Text(String(format: "%+.0f", working.artistBackgroundOffsetY))
+                                .monospacedDigit()
+                                .frame(width: 48)
+                        }
+                    }
+                }
+            } header: {
+                Text("Artist Backgrounds")
+                    .foregroundColor(ControlTheme.accent)
+            } footer: {
+                if working.artistBackgroundsEnabled {
+                    Label {
+                        Text("Artist Backgrounds override the profile background image when the current track artist matches. Priority: matching artist → profile background → background colour.")
+                    } icon: {
+                        Image(systemName: "info.circle")
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
+    }
+
+    @ViewBuilder
+    private func artistEntryRow(entry: Binding<ArtistBackground>) -> some View {
+        let e = entry.wrappedValue
+        let isIncomplete = e.artistName.trimmingCharacters(in: .whitespaces).isEmpty || e.imageFilename == nil
+        HStack(spacing: 10) {
+            Group {
+                if let thumb = artistBgThumbnails[e.id] {
+                    Image(nsImage: thumb)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 40, height: 40)
+                        .clipped()
+                        .cornerRadius(4)
+                } else {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.secondary.opacity(0.2))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "person.crop.rectangle")
+                                .foregroundColor(.secondary)
+                        )
+                }
+            }
+
+            TextField("Artist name", text: entry.artistName)
+                .textFieldStyle(.plain)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .background(Color(NSColor.textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(
+                            e.artistName.trimmingCharacters(in: .whitespaces).isEmpty
+                                ? Color.red.opacity(0.7)
+                                : Color(NSColor.separatorColor).opacity(0.5),
+                            lineWidth: 1
+                        )
+                )
+
+            Button(e.imageFilename == nil ? "Pick Image…" : "Change Image…") {
+                onPickArtistImage(e)
+            }
+            .buttonStyle(.bordered)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(
+                        e.imageFilename == nil ? Color.red.opacity(0.6) : Color.clear,
+                        lineWidth: 1.5
+                    )
+            )
+
+            if e.imageFilename != nil {
+                Button("Clear") { onClearArtistImage(e) }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
+            }
+
+            if isIncomplete {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundColor(.red)
+                    .help("This entry needs both an artist name and a background image before saving.")
+            }
+
+            Button {
+                onRemoveArtistBackground(e)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
     }
 }

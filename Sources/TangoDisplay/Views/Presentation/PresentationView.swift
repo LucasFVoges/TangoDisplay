@@ -8,6 +8,7 @@ struct PresentationView: View {
     var isPreview: Bool = false
 
     @State private var bgImage: NSImage? = nil
+    @State private var artistBgImage: NSImage? = nil
 
     private var activeProfile: AppearanceProfile {
         if let draft = appState.draftProfile { return draft }
@@ -69,11 +70,22 @@ struct PresentationView: View {
         .background {
             // Rendered behind the content by SwiftUI's layout contract —
             // .background() can never cover its parent view.
+            // Priority: matching artist background → profile background → background colour.
             ZStack {
                 activeProfile.backgroundSwiftUIColor
                     .ignoresSafeArea()
 
-                if let img = bgImage {
+                if let img = artistBgImage {
+                    Image(nsImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .scaleEffect(activeProfile.artistBackgroundScale)
+                        .offset(x: activeProfile.artistBackgroundOffsetX,
+                                y: activeProfile.artistBackgroundOffsetY)
+                        .opacity(activeProfile.artistBackgroundOpacity)
+                        .clipped()
+                        .ignoresSafeArea()
+                } else if let img = bgImage {
                     Image(nsImage: img)
                         .resizable()
                         .scaledToFill()
@@ -105,8 +117,20 @@ struct PresentationView: View {
                     .allowsHitTesting(false)
             }
         }
-        .onAppear { reloadBgImage() }
-        .onChange(of: activeProfile) { _ in reloadBgImage() }
+        .onAppear {
+            reloadBgImage()
+            reloadArtistBgImage()
+        }
+        .onChange(of: activeProfile) { _ in
+            reloadBgImage()
+            reloadArtistBgImage()
+        }
+        .onChange(of: appState.displayState.mode) { _ in
+            reloadArtistBgImage()
+        }
+        .onChange(of: appState.displayState.currentTrack?.artist ?? "") { _ in
+            reloadArtistBgImage()
+        }
     }
 
     private func reloadBgImage() {
@@ -116,6 +140,20 @@ struct PresentationView: View {
         }
         let url = appState.profileStore.imageURL(for: filename)
         bgImage = NSImage(contentsOf: url)
+    }
+
+    private func reloadArtistBgImage() {
+        guard appState.displayState.mode == .playing else {
+            artistBgImage = nil
+            return
+        }
+        let artist = appState.displayState.currentTrack?.artist ?? ""
+        guard let match = activeProfile.matchingArtistBackground(for: artist),
+              let filename = match.imageFilename else {
+            artistBgImage = nil
+            return
+        }
+        artistBgImage = NSImage(contentsOf: appState.profileStore.imageURL(for: filename))
     }
 
     @ViewBuilder
