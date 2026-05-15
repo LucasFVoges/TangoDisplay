@@ -49,7 +49,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.15.1-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.15.2-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -135,6 +135,11 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.15.2
+- **Fix (Built-In Player):** Resolved a crash that occurred when plugging in a USB audio interface (e.g. Focusrite Scarlett) — if the audio engine failed to restart after the device configuration change, playback was incorrectly attempted on the stopped engine.
+- **Fix (Built-In Player):** Resolved a crash when switching the output device while audio was playing — the output device property is now set only after the engine is safely stopped, as CoreAudio requires.
+- **Fix (Built-In Player):** Audio no longer redirects to a newly-plugged device (e.g. 3.5mm headphones) when a specific output is already chosen — the selected output is now re-asserted after any audio configuration change.
 
 ### v3.15.1
 - **Fix (Built-In Player):** Resolved a crash (`EXC_CRASH`) that occurred when playing a track via Swinsian. When loading a new track, the audio engine fires a configuration-change notification asynchronously; the stale `tapInstalled` flag caused a second `installTapOnBus` call on an already-occupied bus, throwing an uncaught `NSException`. The tap is now always cleanly removed before reinstalling.

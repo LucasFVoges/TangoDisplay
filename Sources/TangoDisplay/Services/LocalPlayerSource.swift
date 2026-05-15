@@ -135,21 +135,49 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
                 self.audioEngine.connect(self.replayGainMixer, to: self.balanceMixer,    format: file.processingFormat)
                 self.audioEngine.connect(self.balanceMixer,    to: self.audioEngine.mainMixerNode, format: file.processingFormat)
             }
+            // Engine is already stopped by the system when this notification fires, so it is
+            // safe to set the output device property before restarting — this re-asserts the
+            // user's chosen device so a plug event (e.g. headphones) doesn't silently redirect audio.
+            if let audioUnit = self.audioEngine.outputNode.audioUnit {
+                self.setOutputDeviceProperty(audioUnit: audioUnit, uid: self.settings.builtInOutputDeviceUID)
+            }
             do {
                 try self.audioEngine.start()
                 self.levelMeter.reinstallTap()
                 self.applyBalance(self._balance)
+                if self.audioFile != nil {
+                    self.seekTo(self.elapsed)
+                    if self.isActivePlaying { self.playerNode.play() }
+                }
             } catch {
                 os_log(.error, "TangoDisplay: engine restart failed: %{public}@", error.localizedDescription)
             }
-            guard self.audioFile != nil else { return }
-            self.seekTo(self.elapsed)
-            if self.isActivePlaying { self.playerNode.play() }
         }
     }
 
     private func applyOutputDevice(_ uid: String) {
         guard let audioUnit = audioEngine.outputNode.audioUnit else { return }
+        let wasPlaying = isActivePlaying
+        let savedElapsed = elapsed
+        // CoreAudio requires the engine to be stopped before changing the output device.
+        if audioEngine.isRunning {
+            playerNode.stop()
+            audioEngine.stop()
+        }
+        setOutputDeviceProperty(audioUnit: audioUnit, uid: uid)
+        do {
+            try audioEngine.start()
+            levelMeter.reinstallTap()
+            if audioFile != nil {
+                seekTo(savedElapsed)
+                if wasPlaying { playerNode.play() }
+            }
+        } catch {
+            os_log(.error, "TangoDisplay: applyOutputDevice engine restart failed: %{public}@", error.localizedDescription)
+        }
+    }
+
+    private func setOutputDeviceProperty(audioUnit: AudioUnit, uid: String) {
         if uid.isEmpty {
             // Restore default device by reading system default
             var defaultID = AudioDeviceID(0)
