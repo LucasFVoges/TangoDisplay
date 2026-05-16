@@ -49,7 +49,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.15.3-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.15.4-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -135,6 +135,9 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.15.4
+- Add automatic update notifications via Sparkle — TangoDisplay now prompts you when a new version is available and can install it in one click
 
 ### v3.15.3
 - **Fix (Built-In Player):** Year tag now reads correctly from AIFF files tagged with ID3v2.2 (the `TYE` frame used by older taggers and Swinsian imports) — previously this combination caused the year to appear blank.
