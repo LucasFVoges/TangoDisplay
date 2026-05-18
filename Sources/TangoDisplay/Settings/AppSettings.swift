@@ -182,6 +182,9 @@ final class AppSettings: ObservableObject {
             }
         }
     }
+    @Published var genreColorTitleEnabled: Bool {
+        didSet { UserDefaults.standard.set(genreColorTitleEnabled, forKey: kPrefix + "genreColorTitleEnabled") }
+    }
 
     // MARK: - Appearance / presentation
 
@@ -298,6 +301,7 @@ final class AppSettings: ObservableObject {
         } else {
             genreColorRules = []
         }
+        genreColorTitleEnabled = ud.object(forKey: kPrefix + "genreColorTitleEnabled").flatMap { $0 as? Bool } ?? false
         if let idString = ud.string(forKey: kPrefix + "activeProfileID") {
             activeProfileID = UUID(uuidString: idString)
         } else {

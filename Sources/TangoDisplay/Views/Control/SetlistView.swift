@@ -40,6 +40,7 @@ struct SetlistView: View {
     @State private var showReplayGainPopover = false
     @State private var scrollTrigger: UUID? = nil
     @State private var showLastTandaWarning = false
+    @State private var pasteMonitor: Any? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -71,6 +72,17 @@ struct SetlistView: View {
         .onAppear {
             activeEntryID = player.currentEntryID
             isPlayerActive = player.isActivePlaying
+            guard pasteMonitor == nil else { return }
+            pasteMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                guard event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command,
+                      event.charactersIgnoringModifiers?.lowercased() == "v",
+                      !(NSApp.keyWindow?.firstResponder is NSText) else { return event }
+                pasteFromClipboard()
+                return nil
+            }
+        }
+        .onDisappear {
+            if let m = pasteMonitor { NSEvent.removeMonitor(m); pasteMonitor = nil }
         }
         .onReceive(player.$currentEntryID) { activeEntryID = $0 }
         .onReceive(player.$isActivePlaying) { isPlayerActive = $0 }
@@ -83,7 +95,7 @@ struct SetlistView: View {
             Image(systemName: "music.note.list")
                 .font(.system(size: 44))
                 .foregroundColor(isDragTargeted ? ControlTheme.accent : .secondary)
-            Text("Drag tracks here from Music.app, Swinsian, or Finder")
+            Text("Drag tracks here, or copy in your music app and press ⌘V")
                 .font(.system(size: 13))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -175,6 +187,7 @@ struct SetlistView: View {
             isLastTanda: entry.isLastTanda,
             genreColorsEnabled: settings.genreColorsEnabled,
             genreColorRules: settings.genreColorRules,
+            genreColorTitleEnabled: settings.genreColorTitleEnabled,
             player: activeEntryID == entry.id && isPlayerActive ? player : nil
         )
         .tag(entry.id)
@@ -429,6 +442,13 @@ struct SetlistView: View {
         return "Tango Display SetList \(f.string(from: Date()))"
     }
 
+    private func pasteFromClipboard() {
+        let urls = (NSPasteboard.general.readObjects(forClasses: [NSURL.self],
+                    options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+        guard !urls.isEmpty else { return }
+        handleIncomingURLs(urls, anchorID: nil)
+    }
+
     private func loadURLs(from providers: [NSItemProvider]) async -> [URL] {
         var urls: [URL] = []
         for provider in providers {
@@ -652,6 +672,7 @@ struct SetlistRowView: View {
     var isLastTanda: Bool = false
     var genreColorsEnabled: Bool = false
     var genreColorRules: [GenreColorRule] = []
+    var genreColorTitleEnabled: Bool = false
     var player: LocalPlayerSource? = nil
 
     private var isCurrent: Bool { entry.state == .playing || entry.state == .paused || isActivelyPlaying }
@@ -667,7 +688,7 @@ struct SetlistRowView: View {
                         .font(.system(size: 13))
                         .fontWeight(entry.state == .queued ? .medium : .regular)
                         .lineLimit(1)
-                        .foregroundColor(entry.state == .played && !isActivelyPlaying ? .secondary : .primary)
+                        .foregroundColor(genreColorTitleEnabled ? genreTagColor : (entry.state == .played && !isActivelyPlaying ? .secondary : .primary))
                     Text(entry.track.artist + (showYear ? (entry.track.year.map { " · \($0)" } ?? "") : ""))
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)

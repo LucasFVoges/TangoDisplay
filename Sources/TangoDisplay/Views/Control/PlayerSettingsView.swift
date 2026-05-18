@@ -248,6 +248,7 @@ struct PlayerSettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     if settings.genreColorsEnabled {
+                        Toggle("Include song title", isOn: $settings.genreColorTitleEnabled)
                         GenreColourRulesEditor(rules: $settings.genreColorRules)
                     }
                 } header: {

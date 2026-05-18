@@ -35,6 +35,8 @@ Drop onto the track list or into the empty drop zone when the list is empty. Tra
 
 To insert mid-list, drag onto a specific row to place the new track before it rather than appending to the bottom.
 
+You can also **copy** audio files in Finder, Music.app, or Swinsian (⌘C), then press **⌘V** while the Setlist panel is focused to append them instantly — no drag required.
+
 **Supported formats:** MP3, M4A (AAC), AIFF, WAV, FLAC, CAF, Opus.
 
 #### Duplicate Track Protection
@@ -549,6 +551,8 @@ Keywords are case-insensitive and match anywhere in the genre name — `tango` m
 Custom colours apply only to tracks that have not yet been played and are not currently playing — the tanda structure is visible at a glance without interfering with standard playback indicators.
 
 To remove a custom colour, click the **trash** icon next to the rule. The genre tag reverts to standard grey for upcoming tracks.
+
+**Include song title:** When enabled (toggle in **Settings › Player › Genre Colours**), the genre tag colour also applies to the song title text in the setlist row, not just the genre badge.
 
 ### Track Info Transformations
 
