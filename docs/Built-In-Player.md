@@ -35,7 +35,7 @@ Drop onto the track list or into the empty drop zone when the list is empty. Tra
 
 To insert mid-list, drag onto a specific row to place the new track before it rather than appending to the bottom.
 
-You can also **copy** audio files in Finder, Music.app, or Swinsian (⌘C), then press **⌘V** while the Setlist panel is focused to append them instantly — no drag required.
+You can also **copy** audio files in Finder, Music.app, Swinsian, or Foobar2000 (⌘C), then press **⌘V** while the Setlist panel is focused to append them instantly — no drag required.
 
 **Supported formats:** MP3, M4A (AAC), AIFF, WAV, FLAC, CAF, Opus.
 

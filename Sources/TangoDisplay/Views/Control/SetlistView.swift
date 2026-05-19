@@ -445,8 +445,23 @@ struct SetlistView: View {
     private func pasteFromClipboard() {
         let urls = (NSPasteboard.general.readObjects(forClasses: [NSURL.self],
                     options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
-        guard !urls.isEmpty else { return }
-        handleIncomingURLs(urls, anchorID: nil)
+        if !urls.isEmpty {
+            handleIncomingURLs(urls, anchorID: nil)
+            return
+        }
+
+        // Foobar2000 uses a proprietary type; each item is a plist [fileURLString, 0]
+        let foobarType = NSPasteboard.PasteboardType("com.foobar2000.location")
+        var foobarURLs: [URL] = []
+        for item in NSPasteboard.general.pasteboardItems ?? [] {
+            guard let data = item.data(forType: foobarType),
+                  let array = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [Any],
+                  let urlString = array.first as? String,
+                  let url = URL(string: urlString), url.isFileURL else { continue }
+            foobarURLs.append(url)
+        }
+        guard !foobarURLs.isEmpty else { return }
+        handleIncomingURLs(foobarURLs, anchorID: nil)
     }
 
     private func loadURLs(from providers: [NSItemProvider]) async -> [URL] {
