@@ -92,7 +92,7 @@ struct HTMLReportGenerator {
 
         // Logo — embedded as base64 data URI so the HTML is fully self-contained
         let logoDataURI: String = {
-            guard let url = Bundle.module.url(forResource: "SetlistLogo", withExtension: "png"),
+            guard let url = Bundle.main.url(forResource: "SetlistLogo", withExtension: "png"),
                   let data = try? Data(contentsOf: url) else { return "" }
             return "data:image/png;base64," + data.base64EncodedString()
         }()
