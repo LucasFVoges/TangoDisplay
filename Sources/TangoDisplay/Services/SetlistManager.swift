@@ -249,6 +249,35 @@ final class SetlistManager: ObservableObject {
         }
         entries = decoded
         loadMissingDurations()
+        if !UserDefaults.standard.bool(forKey: "setlistGroupingMigrationV1") {
+            loadMissingGroupings()
+        }
+    }
+
+    private func loadMissingGroupings() {
+        let ids = entries.filter { $0.track.grouping == nil }.map { $0.id }
+        guard !ids.isEmpty else {
+            UserDefaults.standard.set(true, forKey: "setlistGroupingMigrationV1")
+            return
+        }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            for id in ids {
+                guard let idx = self.entries.firstIndex(where: { $0.id == id }) else { continue }
+                let url  = self.entries[idx].fileURL
+                let meta = await SetlistManager.readMetadata(from: url)
+                guard let grouping = meta.grouping else { continue }
+                guard let i = self.entries.firstIndex(where: { $0.id == id }) else { continue }
+                let old = self.entries[i].track
+                self.entries[i].track = Track(
+                    title: old.title, artist: old.artist, genre: old.genre,
+                    persistentID: old.persistentID, year: old.year,
+                    comment: old.comment, albumArtist: old.albumArtist,
+                    grouping: grouping, replayGainInfo: old.replayGainInfo)
+            }
+            UserDefaults.standard.set(true, forKey: "setlistGroupingMigrationV1")
+            self.save()
+        }
     }
 
     private func loadMissingDurations() {

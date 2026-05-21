@@ -91,6 +91,7 @@ final class EmbracMonitor: @unchecked Sendable {
                 set nextID to ""
                 set nextYear to 0
                 set nextAlbumArtist to ""
+                set nextGrouping to ""
                 if idx < totalTracks then
                     try
                         set nt to track (idx + 1)
@@ -104,9 +105,13 @@ final class EmbracMonitor: @unchecked Sendable {
                         if nextYear is missing value then set nextYear to 0
                         set nextAlbumArtist to album artist of nt
                         if nextAlbumArtist is missing value then set nextAlbumArtist to ""
+                        try
+                            set nextGrouping to grouping of nt
+                            if nextGrouping is missing value then set nextGrouping to ""
+                        end try
                     end try
                 end if
-                return stateStr & linefeed & theTitle & linefeed & theArtist & linefeed & theGenre & linefeed & theID & linefeed & theYear & linefeed & theComment & linefeed & theAlbumArtist & linefeed & theGrouping & linefeed & nextTitle & linefeed & nextArtist & linefeed & nextGenre & linefeed & nextID & linefeed & nextYear & linefeed & nextAlbumArtist
+                return stateStr & linefeed & theTitle & linefeed & theArtist & linefeed & theGenre & linefeed & theID & linefeed & theYear & linefeed & theComment & linefeed & theAlbumArtist & linefeed & theGrouping & linefeed & nextTitle & linefeed & nextArtist & linefeed & nextGenre & linefeed & nextID & linefeed & nextYear & linefeed & nextAlbumArtist & linefeed & nextGrouping
             on error
                 return "stopped" & linefeed & "" & linefeed & "" & linefeed & "" & linefeed & "" & linefeed & "0" & linefeed & "" & linefeed & "" & linefeed & "" & linefeed & "" & linefeed & "" & linefeed & "" & linefeed & "0" & linefeed & ""
             end try
@@ -325,8 +330,8 @@ final class EmbracMonitor: @unchecked Sendable {
 
     // MARK: - Output parsing
 
-    /// Parses fifteen newline-delimited fields: state, title, artist, genre, id, year,
-    /// comment, albumArtist, grouping, nextTitle, nextArtist, nextGenre, nextID, nextYear, nextAlbumArtist.
+    /// Parses sixteen newline-delimited fields: state, title, artist, genre, id, year,
+    /// comment, albumArtist, grouping, nextTitle, nextArtist, nextGenre, nextID, nextYear, nextAlbumArtist, nextGrouping.
     /// Returns (currentTrack, nextTrack, playerState).
     private func parseOutput(_ output: String) -> (Track?, Track?, PlayerState) {
         // osascript appends a trailing newline; split keeping empty strings to preserve indices
@@ -362,9 +367,11 @@ final class EmbracMonitor: @unchecked Sendable {
         let nextYear           = nextYearRaw > 0 ? nextYearRaw : nil
         let nextAlbumArtistRaw = lines.count > 14 ? lines[14] : ""
         let nextAlbumArtist    = nextAlbumArtistRaw.isEmpty ? nil : nextAlbumArtistRaw
+        let nextGroupingRaw    = lines.count > 15 ? lines[15] : ""
+        let nextGrouping       = nextGroupingRaw.isEmpty ? nil : nextGroupingRaw
 
         let nextTrack: Track? = nextID.isEmpty && nextTitle.isEmpty ? nil :
-            Track(title: nextTitle, artist: nextArtist, genre: nextGenre, persistentID: nextID, year: nextYear, albumArtist: nextAlbumArtist)
+            Track(title: nextTitle, artist: nextArtist, genre: nextGenre, persistentID: nextID, year: nextYear, albumArtist: nextAlbumArtist, grouping: nextGrouping)
 
         return (currentTrack, nextTrack, state)
     }

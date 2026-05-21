@@ -49,7 +49,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.19.0-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.19.1-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -135,6 +135,10 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.19.1
+- Fix: Singer from Grouping field now correctly shown in the upcoming-track display during cortinas when using the Embrace player
+- Fix: Grouping tag now shown in Setlist for tracks added before the Grouping feature was introduced (one-time metadata refresh on first launch)
 
 ### v3.19.0
 - New: Grouping metadata field — read from Music.app, Swinsian, Embrace, J River, and audio file tags; optionally shown in setlist rows and selectable as the singer source on the dancer display

@@ -18,7 +18,7 @@ TangoDisplay supports six player sources. Select your player in **Settings › P
 **Tanda position** — shows "Track 2" (position within the current tanda, derived from track history or playlist).  
 **Tanda total** — shows "of 4" (total tracks in the tanda, requires backward playlist context). Swinsian's queue starts at the current track, so this is unavailable.  
 **Coming-up preview** — the "Coming Up" genre and artist shown during a cortina, derived from the playlist.  
-**Singer** — vocalist name from Comments or Album Artist field (configured in Appearance › Singer Source).
+**Singer** — vocalist name from Comments, Album Artist, or Grouping field (configured in Appearance › Singer Source).
 
 ---
 

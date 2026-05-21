@@ -481,7 +481,8 @@ final class AppState: ObservableObject {
                tracks[playlistCurrentIndex].persistentID == currentTrack.persistentID {
                 var nextFromPlaylist = findNextDanceTrack(after: playlistCurrentIndex, detector: detector)
                 if let np = nextFromPlaylist, let known = lastKnownNextTrack,
-                   np.persistentID == known.persistentID {
+                   np.persistentID == known.persistentID,
+                   known.grouping != nil {
                     nextFromPlaylist = known
                 }
                 displayState.nextTrack = nextFromPlaylist
