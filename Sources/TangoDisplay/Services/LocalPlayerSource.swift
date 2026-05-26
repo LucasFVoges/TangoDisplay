@@ -79,6 +79,9 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
     private var presetManager: AudioUnitPresetManager?
     @Published private(set) var availablePresets: [AudioUnitPreset] = []
     @Published private(set) var activePresetID: UUID? = nil
+    private var parameterObserverToken: AUParameterObserverToken?
+    private var parameterObserverTree: AUParameterTree?
+    private var isApplyingPreset = false
 
     // MARK: - Private — auto-gap
 
@@ -1003,6 +1006,7 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
 
     func applyPreset(_ preset: AudioUnitPreset) {
         guard let avUnit = activeAudioUnitPlugin, let manager = presetManager else { return }
+        isApplyingPreset = true
         do {
             try manager.applyPreset(preset, to: avUnit)
             activePresetID = preset.id
@@ -1010,6 +1014,7 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         } catch {
             os_log(.error, "TangoDisplay: applyPreset failed: %{public}@", error.localizedDescription)
         }
+        DispatchQueue.main.async { [weak self] in self?.isApplyingPreset = false }
     }
 
     func saveCurrentAsPreset(named name: String) throws {
@@ -1082,6 +1087,17 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
                         try? manager.applyPreset(match, to: avUnit)
                         self.activePresetID = match.id
                     }
+                    // Clear active preset when the user modifies parameters in the native UI
+                    if let tree = avUnit.auAudioUnit.parameterTree {
+                        self.parameterObserverTree = tree
+                        self.parameterObserverToken = tree.token(byAddingParameterObserver: { [weak self] _, _ in
+                            DispatchQueue.main.async {
+                                guard let self, !self.isApplyingPreset else { return }
+                                self.activePresetID = nil
+                                self.settings.lastUsedAUPresetName = nil
+                            }
+                        })
+                    }
                 }
             } catch {
                 await MainActor.run { [weak self] in
@@ -1098,6 +1114,11 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         // Disconnect before detach so the engine does not hold a reference to the node.
         audioEngine.disconnectNodeOutput(plugin)
         audioEngine.detach(plugin)
+        if let tree = parameterObserverTree, let token = parameterObserverToken {
+            tree.removeParameterObserver(token)
+        }
+        parameterObserverToken = nil
+        parameterObserverTree = nil
         activeAudioUnitPlugin = nil
         presetManager = nil
         availablePresets = []
