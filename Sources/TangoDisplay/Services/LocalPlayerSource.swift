@@ -76,6 +76,9 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
     private var pluginLoadGeneration: Int = 0
     @Published private(set) var audioUnitPluginStatus: AudioUnitPluginStatus = .noPluginSelected
     private var pluginWindow: NSWindow?
+    private var presetManager: AudioUnitPresetManager?
+    @Published private(set) var availablePresets: [AudioUnitPreset] = []
+    @Published private(set) var activePresetID: UUID? = nil
 
     // MARK: - Private — auto-gap
 
@@ -995,6 +998,37 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         pluginWindow = nil
     }
 
+    // MARK: - Presets
+
+    func applyPreset(_ preset: AudioUnitPreset) {
+        guard let avUnit = activeAudioUnitPlugin, let manager = presetManager else { return }
+        do {
+            try manager.applyPreset(preset, to: avUnit)
+            activePresetID = preset.id
+            settings.lastUsedAUPresetName = preset.name
+        } catch {
+            os_log(.error, "TangoDisplay: applyPreset failed: %{public}@", error.localizedDescription)
+        }
+    }
+
+    func saveCurrentAsPreset(named name: String) throws {
+        guard let avUnit = activeAudioUnitPlugin, let manager = presetManager else { return }
+        let preset = try manager.savePreset(name: name, from: avUnit)
+        availablePresets = manager.factoryPresets(for: avUnit) + manager.userPresets()
+        activePresetID = preset.id
+        settings.lastUsedAUPresetName = preset.name
+    }
+
+    func deletePreset(_ preset: AudioUnitPreset) throws {
+        guard let avUnit = activeAudioUnitPlugin, let manager = presetManager else { return }
+        try manager.deletePreset(preset)
+        availablePresets = manager.factoryPresets(for: avUnit) + manager.userPresets()
+        if activePresetID == preset.id {
+            activePresetID = nil
+            settings.lastUsedAUPresetName = nil
+        }
+    }
+
     // MARK: - Private: plugin internals
 
     private func initializePluginStatus() {
@@ -1037,6 +1071,16 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
                     self.activeAudioUnitPlugin = avUnit
                     self.audioUnitPluginStatus = .active(selection.name)
                     self.rewireGraphSafely()
+                    // Set up preset manager and auto-restore last-used preset
+                    let manager = AudioUnitPresetManager(for: selection)
+                    self.presetManager = manager
+                    let allPresets = manager.factoryPresets(for: avUnit) + manager.userPresets()
+                    self.availablePresets = allPresets
+                    if let savedName = self.settings.lastUsedAUPresetName,
+                       let match = allPresets.first(where: { $0.name == savedName }) {
+                        try? manager.applyPreset(match, to: avUnit)
+                        self.activePresetID = match.id
+                    }
                 }
             } catch {
                 await MainActor.run { [weak self] in
@@ -1054,6 +1098,9 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         audioEngine.disconnectNodeOutput(plugin)
         audioEngine.detach(plugin)
         activeAudioUnitPlugin = nil
+        presetManager = nil
+        availablePresets = []
+        activePresetID = nil
     }
 
     // MARK: - Private: observers

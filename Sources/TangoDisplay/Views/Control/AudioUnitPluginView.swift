@@ -8,6 +8,14 @@ struct AudioUnitPluginSettingsSection: View {
     @ObservedObject var player: LocalPlayerSource
     @EnvironmentObject var settings: AppSettings
     @State private var showPicker = false
+    @State private var showSavePresetAlert = false
+    @State private var newPresetName = ""
+
+    private var activePresetLabel: String {
+        guard let id = player.activePresetID,
+              let p = player.availablePresets.first(where: { $0.id == id }) else { return "None" }
+        return p.name
+    }
 
     var body: some View {
         Section {
@@ -45,6 +53,58 @@ struct AudioUnitPluginSettingsSection: View {
                     player.removeAudioUnitPlugin()
                 }
                 .disabled(settings.selectedAudioUnitPlugin == nil)
+            }
+
+            if player.audioUnitPluginStatus.isActive && !player.availablePresets.isEmpty {
+                let factoryPresets = player.availablePresets.filter(\.isFactory)
+                let userPresets = player.availablePresets.filter(\.isUser)
+
+                LabeledContent("Preset") {
+                    HStack {
+                        Menu {
+                            if !factoryPresets.isEmpty {
+                                Section("Factory") {
+                                    ForEach(factoryPresets) { p in
+                                        Button(p.name) { player.applyPreset(p) }
+                                    }
+                                }
+                            }
+                            if !userPresets.isEmpty {
+                                Section("Saved") {
+                                    ForEach(userPresets) { p in
+                                        Button(p.name) { player.applyPreset(p) }
+                                    }
+                                }
+                                Divider()
+                                ForEach(userPresets) { p in
+                                    Button("Delete \"\(p.name)\"", role: .destructive) {
+                                        try? player.deletePreset(p)
+                                    }
+                                }
+                            }
+                        } label: {
+                            Text(activePresetLabel)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        Button("Save as Preset…") {
+                            newPresetName = ""
+                            showSavePresetAlert = true
+                        }
+                    }
+                }
+                .alert("Save as Preset", isPresented: $showSavePresetAlert) {
+                    TextField("Preset name", text: $newPresetName)
+                    Button("Save") {
+                        let name = newPresetName.trimmingCharacters(in: .whitespaces)
+                        guard !name.isEmpty else { return }
+                        try? player.saveCurrentAsPreset(named: name)
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Enter a name for the current EQ settings.")
+                }
             }
 
             LabeledContent("Status") {

@@ -238,6 +238,15 @@ final class AppSettings: ObservableObject {
             }
         }
     }
+    @Published var lastUsedAUPresetName: String? {
+        didSet {
+            if let name = lastUsedAUPresetName {
+                UserDefaults.standard.set(name, forKey: kPrefix + "lastUsedAUPresetName")
+            } else {
+                UserDefaults.standard.removeObject(forKey: kPrefix + "lastUsedAUPresetName")
+            }
+        }
+    }
 
     // MARK: - Init
 
@@ -324,9 +333,13 @@ final class AppSettings: ObservableObject {
         }
         mirrorMode = ud.object(forKey: kPrefix + "mirrorMode").flatMap { $0 as? Bool } ?? true
         showTrackCounter = ud.object(forKey: kPrefix + "showTrackCounter").flatMap { $0 as? Bool } ?? true
-        if let data = ud.data(forKey: kPrefix + "trackTransforms"),
-           let rules = try? JSONDecoder().decode([String: TransformRule].self, from: data) {
-            trackTransforms = rules
+        if let data = ud.data(forKey: kPrefix + "trackTransforms") {
+            if let rules = try? JSONDecoder().decode([String: TransformRule].self, from: data) {
+                trackTransforms = rules
+            } else {
+                NSLog("[TangoDisplay] WARNING: trackTransforms decode failed — resetting to empty")
+                trackTransforms = [:]
+            }
         } else {
             trackTransforms = [:]
         }
@@ -338,6 +351,7 @@ final class AppSettings: ObservableObject {
         } else {
             selectedAudioUnitPlugin = nil
         }
+        lastUsedAUPresetName = ud.string(forKey: kPrefix + "lastUsedAUPresetName")
     }
 
     // MARK: - Helpers

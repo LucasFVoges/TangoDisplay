@@ -1,5 +1,28 @@
 import Foundation
 
+public struct AudioUnitPreset: Identifiable, Equatable {
+    public enum Kind: Equatable {
+        case factory(number: Int)
+        case user(classInfoData: Data)
+    }
+
+    public let id: UUID
+    public let name: String
+    public let kind: Kind
+
+    public var isFactory: Bool { if case .factory = kind { return true }; return false }
+    public var isUser: Bool { !isFactory }
+    public var factoryNumber: Int? {
+        if case .factory(let n) = kind { return n }; return nil
+    }
+
+    public init(id: UUID = UUID(), name: String, kind: Kind) {
+        self.id = id
+        self.name = name
+        self.kind = kind
+    }
+}
+
 public struct AudioUnitPluginSelection: Codable, Equatable, Identifiable {
     public let id: UUID
     public let name: String
