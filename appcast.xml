@@ -4,6 +4,22 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.21.1</title>
+            <pubDate>Tue, 26 May 2026 12:00:00 +0000</pubDate>
+            <sparkle:version>69</sparkle:version>
+            <sparkle:shortVersionString>3.21.1</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li>Fix: tracks purchased from Apple Music after July 2022 can now be dragged directly from the Music library into the Setlist on macOS Sequoia</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.21.1/TangoDisplay-v3.21.1-universal.zip"
+                sparkle:edSignature="B/XyU+1R/H1rzkJ8E/z6Dsto1ti1vLGRSGhu3IPjbdnrM2kZlBm1g2u66NbyMyOnFdOy3U67dH5Q+C/MxwDuCQ=="
+                length="5397534"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.21.0</title>
             <pubDate>Tue, 26 May 2026 12:00:00 +0000</pubDate>
             <sparkle:version>68</sparkle:version>
