@@ -4,6 +4,24 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.21.0</title>
+            <pubDate>Tue, 26 May 2026 12:00:00 +0000</pubDate>
+            <sparkle:version>68</sparkle:version>
+            <sparkle:shortVersionString>3.21.0</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li>Audio Unit plugin presets: save named presets, apply factory presets, and auto-restore the last-used preset when the plugin loads</li>
+                    <li>Preset bar added to the plugin floating window — "Preset:" picker and "Save as Preset…" button accessible without opening Settings</li>
+                    <li>Preset label resets to None when you edit any parameter directly in the plugin window</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.21.0/TangoDisplay-v3.21.0-universal.zip"
+                sparkle:edSignature="2Y+ROL9hFmqiqaTEz663auNnJjoooUrltVjoGNCmXR4sQ44nlNY8TSRfBoZNhy+EtlEhIVSkzkqcIULLYbbrDw=="
+                length="5393289"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.20.1</title>
             <pubDate>Sun, 25 May 2026 12:00:00 +0000</pubDate>
             <sparkle:version>67</sparkle:version>
