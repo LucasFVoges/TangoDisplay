@@ -20,16 +20,18 @@ private class MusicAppDropView: NSView {
     var onDrop: ([URL]) -> Void = { _ in }
     var onTargeted: (Bool) -> Void = { _ in }
 
-    private static let pasteboardType = NSPasteboard.PasteboardType("com.apple.itunes.drag")
+    private static let pasteboardType     = NSPasteboard.PasteboardType("com.apple.itunes.drag")
+    private static let musicMetadataType  = NSPasteboard.PasteboardType("com.apple.music.metadata")
 
     override init(frame: NSRect) {
         super.init(frame: frame)
-        registerForDraggedTypes([Self.pasteboardType])
+        registerForDraggedTypes([Self.pasteboardType, Self.musicMetadataType])
     }
     required init?(coder: NSCoder) { fatalError() }
 
     private func hasMusicDrag(_ sender: NSDraggingInfo) -> Bool {
-        sender.draggingPasteboard.types?.contains(Self.pasteboardType) == true
+        let types = sender.draggingPasteboard.types ?? []
+        return types.contains(Self.pasteboardType) || types.contains(Self.musicMetadataType)
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
@@ -47,10 +49,36 @@ private class MusicAppDropView: NSView {
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
         onTargeted(false)
-        let urls = resolveViaMusicSelection()
+        let pasteboard = sender.draggingPasteboard
+        let urls: [URL]
+        if pasteboard.types?.contains(Self.musicMetadataType) == true {
+            urls = resolveViaMusicMetadata(pasteboard)
+        } else {
+            urls = resolveViaMusicSelection()
+        }
         guard !urls.isEmpty else { return false }
         onDrop(urls)
         return true
+    }
+
+    // Music.app puts com.apple.music.metadata on the drag pasteboard for post-2022
+    // purchased AAC tracks instead of providing a file URL. The plist contains track
+    // dicts keyed by track-ID strings, each with a "Location" field (~ prefix).
+    private func resolveViaMusicMetadata(_ pasteboard: NSPasteboard) -> [URL] {
+        var urls: [URL] = []
+        for item in pasteboard.pasteboardItems ?? [] {
+            guard let plist = item.propertyList(forType: Self.musicMetadataType) as? [String: Any]
+            else { continue }
+            for (_, value) in plist {
+                guard let track = value as? [String: Any],
+                      let location = track["Location"] as? String,
+                      !location.isEmpty else { continue }
+                let path = NSString(string: location).expandingTildeInPath
+                let url = URL(fileURLWithPath: path)
+                if url.isFileURL { urls.append(url) }
+            }
+        }
+        return urls
     }
 
     private func resolveViaMusicSelection() -> [URL] {
