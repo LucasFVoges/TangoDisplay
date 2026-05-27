@@ -514,7 +514,7 @@ struct SetlistView: View {
 
             if !setlist.entries.isEmpty {
                 Divider()
-                StatusBarView(player: player, setlist: setlist)
+                StatusBarView(player: player, setlist: setlist, selectedIDs: selectedIDs)
             }
         }
         .onAppear {
@@ -1039,6 +1039,7 @@ struct SetlistView: View {
 private struct StatusBarView: View {
     @ObservedObject var player: LocalPlayerSource
     @ObservedObject var setlist: SetlistManager
+    var selectedIDs: Set<UUID>
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var settings: AppSettings
 
@@ -1069,6 +1070,18 @@ private struct StatusBarView: View {
             Spacer()
 
             HStack(spacing: 12) {
+                if selectedIDs.count >= 2 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle")
+                        Text("\(selectedIDs.count) selected")
+                        Text("·")
+                        Text(formatDuration(selectionDuration))
+                            .monospacedDigit()
+                    }
+                    .font(.system(size: 11))
+                    .foregroundColor(.primary)
+                }
+
                 HStack(spacing: 4) {
                     Image(systemName: "clock")
                     Text(formatDuration(setlist.totalPlaylistDuration))
@@ -1101,6 +1114,13 @@ private struct StatusBarView: View {
 
     private var unplayedCount: Int {
         setlist.entries.filter { $0.state != .played }.count
+    }
+
+    private var selectionDuration: TimeInterval {
+        setlist.entries
+            .filter { selectedIDs.contains($0.id) }
+            .compactMap { $0.duration }
+            .reduce(0, +)
     }
 
     private var timeUntilNextCortina: TimeInterval {

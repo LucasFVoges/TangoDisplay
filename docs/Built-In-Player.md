@@ -148,7 +148,7 @@ Right-click any row:
 
 > **Screenshot placeholder:** right-click context menu on a setlist row
 
-**Bulk mark:** ⌘-click or Shift-click to select multiple rows, then right-click to apply **Mark as Played** or **Mark as Not Played** to all selected tracks at once.
+**Bulk mark:** ⌘-click or Shift-click to select multiple rows, then right-click to apply **Mark as Played** or **Mark as Not Played** to all selected tracks at once. When two or more tracks are selected, the status bar at the bottom of the setlist shows the number of selected tracks and their combined duration.
 
 ### Stop After Playing
 

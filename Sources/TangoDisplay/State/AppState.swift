@@ -476,16 +476,45 @@ final class AppState: ObservableObject {
         // first occurrence and produce the wrong look-ahead for duplicate cortina files.
         if displayState.mode == .cortina, let currentTrack = displayState.currentTrack {
             let detector = settings.makeDetector()
-            if let tracks = playlistTracks,
-               playlistCurrentIndex < tracks.count,
-               tracks[playlistCurrentIndex].persistentID == currentTrack.persistentID {
-                var nextFromPlaylist = findNextDanceTrack(after: playlistCurrentIndex, detector: detector)
-                if let np = nextFromPlaylist, let known = lastKnownNextTrack,
-                   np.persistentID == known.persistentID,
-                   known.grouping != nil {
-                    nextFromPlaylist = known
+            if let tracks = playlistTracks {
+                // Primary check: prefer the stored index (handles duplicate-cortina setlists).
+                if playlistCurrentIndex < tracks.count,
+                   tracks[playlistCurrentIndex].persistentID == currentTrack.persistentID {
+                    var nextFromPlaylist = findNextDanceTrack(after: playlistCurrentIndex, detector: detector)
+                    // Prefer lastKnownNextTrack when PIDs match: it was fetched via
+                    // /File/GetInfo and carries full metadata (year, albumArtist, etc.)
+                    // that the MPL playlist format may omit.
+                    if let np = nextFromPlaylist, let known = lastKnownNextTrack,
+                       np.persistentID == known.persistentID {
+                        nextFromPlaylist = known
+                    }
+                    displayState.nextTrack = nextFromPlaylist
+                } else {
+                    // Primary check failed — playlistCurrentIndex is stale (e.g. JRiver briefly
+                    // returned a wrong PlayingNowPosition). Count occurrences of this PID:
+                    //  - 0: cortina genuinely not in playlist (user switched) → clear
+                    //  - 1: safe to self-correct the index and re-derive nextTrack
+                    //  - 2+: ambiguous (duplicate cortina files) — leave nextTrack intact;
+                    //    onNextTrackUpdate will refresh it from NextFileKey within 2 s.
+                    let occurrences = tracks.indices.filter {
+                        tracks[$0].persistentID == currentTrack.persistentID
+                    }
+                    switch occurrences.count {
+                    case 0:
+                        displayState.nextTrack = nil
+                    case 1:
+                        let idx = occurrences[0]
+                        playlistCurrentIndex = idx
+                        var nextFromPlaylist = findNextDanceTrack(after: idx, detector: detector)
+                        if let np = nextFromPlaylist, let known = lastKnownNextTrack,
+                           np.persistentID == known.persistentID {
+                            nextFromPlaylist = known
+                        }
+                        displayState.nextTrack = nextFromPlaylist
+                    default:
+                        break
+                    }
                 }
-                displayState.nextTrack = nextFromPlaylist
             } else {
                 displayState.nextTrack = nil
             }

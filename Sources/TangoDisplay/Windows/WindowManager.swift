@@ -51,7 +51,8 @@ final class WindowManager {
     /// Opens the presentation window via SwiftUI's openWindow action.
     /// Must be called with an Environment openWindow value.
     static func ensureOpen(openWindow: OpenWindowAction) {
-        if presentationWindow == nil || presentationWindow?.isVisible == false {
+        if presentationWindow == nil ||
+           (presentationWindow?.isVisible == false && presentationWindow?.isMiniaturized == false) {
             openWindow(id: "presentation")
         }
     }
@@ -81,6 +82,6 @@ final class WindowManager {
         }) else { return }
         window.deminiaturize(nil)
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        window.orderFrontRegardless()
     }
 }
