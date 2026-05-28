@@ -4,6 +4,24 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.21.6</title>
+            <pubDate>Wed, 28 May 2026 12:00:00 +0000</pubDate>
+            <sparkle:version>75</sparkle:version>
+            <sparkle:shortVersionString>3.21.6</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li>Track counter position is now configurable: top-left, top-right, bottom-left, bottom-right, or centred inline with track text</li>
+                    <li>When set to "Centred (in text order)", the counter appears as part of the text stack and can be reordered via Appearance &gt; Visibility &gt; Text Order for Dance Tracks</li>
+                    <li>Position setting is in Display &gt; Control Window, below the Show Track Counter toggle</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.21.6/TangoDisplay-v3.21.6-universal.zip"
+                sparkle:edSignature="5dZMTJw/zp9917YVrJUz73YsgBdilxzmdKRyw6Cutj+ud5mNyRBzxE6kGd8fLdtLH/5ZcvcajhOb2H8+9J6SDg=="
+                length="5466218"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.21.5</title>
             <pubDate>Wed, 27 May 2026 18:00:00 +0000</pubDate>
             <sparkle:version>74</sparkle:version>
