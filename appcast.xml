@@ -4,6 +4,22 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.21.9</title>
+            <pubDate>Sat, 30 May 2026 12:00:00 +0000</pubDate>
+            <sparkle:version>78</sparkle:version>
+            <sparkle:shortVersionString>3.21.9</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li>Fixed: with Hide Played on, dragging in new tracks now lands in the correct slot. Reordering and deleting rows in the filtered list also now affect the row you actually clicked.</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.21.9/TangoDisplay-v3.21.9-universal.zip"
+                sparkle:edSignature="yQJFt9EhWQCZH/Q3j/JraO5Q1RlhmWPMMpiJZFmLeqDf/GopITdaIfS+fRIWlEAO0HEGJBH9jD+FQCKYPr7WBQ=="
+                length="5548693"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.21.8</title>
             <pubDate>Fri, 30 May 2026 12:00:00 +0000</pubDate>
             <sparkle:version>77</sparkle:version>
