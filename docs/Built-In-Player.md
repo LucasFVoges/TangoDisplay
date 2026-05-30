@@ -158,6 +158,14 @@ When **Stop after Playing** is set on a row, a small stop icon appears in that r
 
 Click the **Clear Setlist** button in the toolbar. This removes all tracks and resets all playback state.
 
+### Hiding Played Tracks
+
+Click the **filter button** (three-line funnel icon) in the Setlist toolbar to hide all fully-played tracks. The current or next-to-play track is always visible — it won't disappear even if it has been early-marked as played. The list scrolls to the active track automatically when you toggle the filter.
+
+Click the button again to restore the full track list and scroll the current track back into view.
+
+The hide-played setting is remembered across sessions.
+
 ---
 
 ## Setlist Footer

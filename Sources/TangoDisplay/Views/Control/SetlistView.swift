@@ -685,8 +685,11 @@ struct SetlistView: View {
         let firstID = setlist.entries.first?.id
         let nonePlayedYet = !setlist.entries.contains(where: { $0.state == .played })
         let isIgnoringFirstTrack = settings.autoGapEnabled && settings.autoGapIgnoreFirstTrack
+        let entries = settings.hidePlayed
+            ? setlist.entries.filter { $0.state != .played || $0.id == activeEntryID }
+            : setlist.entries
         return List(selection: $selectedIDs) {
-            ForEach(setlist.entries) { entry in
+            ForEach(entries) { entry in
                 let wouldSkipAutoGap = isIgnoringFirstTrack && nonePlayedYet && entry.state == .queued && entry.id == firstID
                 rowView(for: entry, wouldSkipAutoGap: wouldSkipAutoGap)
             }
@@ -779,6 +782,17 @@ struct SetlistView: View {
                         .disabled(!settings.audioUnitPluginEnabled || settings.audioUnitPluginBypassed)
                     }
                 }
+            }
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    settings.hidePlayed.toggle()
+                    let target = activeEntryID
+                        ?? setlist.entries.first(where: { $0.state != .played })?.id
+                    scrollTrigger = target
+                } label: {
+                    Label("Hide Played", systemImage: settings.hidePlayed ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                }
+                .disabled(setlist.entries.isEmpty)
             }
             ToolbarItem(placement: .automatic) {
                 Button(role: .destructive) { showClearConfirmation = true } label: {

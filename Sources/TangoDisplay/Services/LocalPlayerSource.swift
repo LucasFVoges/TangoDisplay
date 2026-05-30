@@ -144,6 +144,9 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
     @objc private func handleEngineConfigChange() {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
+            // Invalidate any pending dataPlayedBack callbacks so the system-forced engine stop
+            // (e.g. headphone removal on System Default) doesn't spuriously fire handleTrackEnd → skipNext().
+            self.scheduleGeneration += 1
             // Graph rewire must happen with engine stopped; engine is already stopped when this fires.
             if self.audioFile != nil {
                 self.connectAudioGraph(format: self.audioFile?.processingFormat)

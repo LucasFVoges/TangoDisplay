@@ -49,7 +49,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.21.7-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.21.8-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -135,6 +135,11 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.21.8
+- Hide Played: new toolbar toggle (filter icon) that hides fully-played tracks so the current track stays at the top of the visible list. The active track is always shown even when early-marked as played. Preference is persisted across sessions.
+- Fixed: unplugging headphones (or any audio device change) on the System Default output no longer causes the current track to skip unexpectedly.
+- Fixed album artwork overflowing its panel — artwork is now constrained to the same size as the setlist logo placeholder.
 
 ### v3.21.7
 - Decibel Meter: real-time room noise monitor in the Setlist toolbar. Enable in **Settings › Player › Decibel Meter** and set your acceptable noise range with the interactive colour-coded slider (blue = too quiet, green = acceptable, red = too loud)

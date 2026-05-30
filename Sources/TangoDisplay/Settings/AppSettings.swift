@@ -263,6 +263,10 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(decibelMeterHighThreshold, forKey: kPrefix + "decibelMeterHighThreshold") }
     }
 
+    @Published var hidePlayed: Bool {
+        didSet { UserDefaults.standard.set(hidePlayed, forKey: kPrefix + "hidePlayed") }
+    }
+
     // MARK: - Init
 
     init() {
@@ -372,6 +376,7 @@ final class AppSettings: ObservableObject {
         decibelMeterEnabled = ud.object(forKey: kPrefix + "decibelMeterEnabled").flatMap { $0 as? Bool } ?? false
         decibelMeterLowThreshold  = ud.object(forKey: kPrefix + "decibelMeterLowThreshold").flatMap { $0 as? Int } ?? 60
         decibelMeterHighThreshold = ud.object(forKey: kPrefix + "decibelMeterHighThreshold").flatMap { $0 as? Int } ?? 80
+        hidePlayed = ud.object(forKey: kPrefix + "hidePlayed").flatMap { $0 as? Bool } ?? false
     }
 
     // MARK: - Helpers

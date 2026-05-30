@@ -19,8 +19,6 @@ struct PlayerControlsView: View {
                 .frame(maxWidth: .infinity)
 
                 artworkPanel
-                    .frame(width: LevelMeterView.totalWidth)
-                    .frame(maxHeight: .infinity)
             }
             .fixedSize(horizontal: false, vertical: true)
             volumeRow
@@ -47,6 +45,7 @@ struct PlayerControlsView: View {
                     .scaledToFit()
             }
         }
+        .frame(width: LevelMeterView.totalWidth, height: LevelMeterView.totalWidth)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
