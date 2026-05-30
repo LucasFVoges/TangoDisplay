@@ -4,6 +4,22 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.21.10</title>
+            <pubDate>Sat, 30 May 2026 13:00:00 +0000</pubDate>
+            <sparkle:version>79</sparkle:version>
+            <sparkle:shortVersionString>3.21.10</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li>Fixed: with Hide Played on, returning to the Setlist tab after switching to another tab no longer briefly hides (or de-emphasises) the currently playing track when it is past its mark-as-played threshold.</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.21.10/TangoDisplay-v3.21.10-universal.zip"
+                sparkle:edSignature="QU9CAbaNTIb+bN11CX8fXxgnGz9L/CGUgsKqxHYnZ4y9tNWy2+VVaVkmkafuSMSZ2/59gAfbf21j0Utu3u9SDw=="
+                length="5548343"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.21.9</title>
             <pubDate>Sat, 30 May 2026 12:00:00 +0000</pubDate>
             <sparkle:version>78</sparkle:version>
