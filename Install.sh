@@ -50,6 +50,8 @@ fi
 
 # Copy image resources into Contents/Resources
 cp "Sources/TangoDisplay/Resources/SetlistLogo.png" "$RES_DIR/"
+# Copy Setlist Remote web UI (loaded by HTTPServerTransport via Bundle.main)
+cp -R "Sources/TangoDisplay/Resources/RemoteUI" "$RES_DIR/"
 
 echo "== Write Info.plist =="
 cat > "$CONTENTS/Info.plist" <<EOF
@@ -68,9 +70,9 @@ cat > "$CONTENTS/Info.plist" <<EOF
   <key>CFBundleIconFile</key>
   <string>icon</string>
   <key>CFBundleVersion</key>
-  <string>81</string>
+  <string>82</string>
   <key>CFBundleShortVersionString</key>
-  <string>3.22.1</string>
+  <string>3.23.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSMinimumSystemVersion</key>
@@ -89,6 +91,13 @@ cat > "$CONTENTS/Info.plist" <<EOF
   <!-- Required for built-in microphone room noise monitoring (decibel meter) -->
   <key>NSMicrophoneUsageDescription</key>
   <string>TangoDisplay monitors the microphone to measure room noise so you can see whether music is too quiet, perfect, or too loud for the dance floor.</string>
+  <!-- Required for the Setlist Remote feature so a phone on the same Wi-Fi can connect (Bonjour advertise + accept incoming HTTP/WebSocket) -->
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>TangoDisplay hosts a small web page on this network so an iPhone can adjust volume and other sound controls from the dance floor.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_http._tcp</string>
+  </array>
   <!-- Sparkle auto-update -->
   <key>SUFeedURL</key>
   <string>https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/appcast.xml</string>

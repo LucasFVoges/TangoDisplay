@@ -12,6 +12,20 @@ public struct ArtistBackground: Codable, Identifiable, Equatable {
     }
 }
 
+public struct GenreBackground: Codable, Identifiable, Equatable {
+    public var id: UUID
+    public var genreKey: String        // denylist entry verbatim; empty string is the cortina sentinel
+    public var imageFilename: String?  // "genre-{uuid}.{ext}" stored in images dir
+
+    public init(id: UUID = UUID(), genreKey: String, imageFilename: String? = nil) {
+        self.id = id
+        self.genreKey = genreKey
+        self.imageFilename = imageFilename
+    }
+
+    public var isCortinaEntry: Bool { genreKey.isEmpty }
+}
+
 public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var id: UUID
     public var name: String
@@ -60,12 +74,22 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var artistBackgroundOffsetX: Double
     public var artistBackgroundOffsetY: Double
 
+    // Genre Backgrounds — per-genre (and one cortina-only) images that override the profile background.
+    // Lower priority than artist backgrounds, higher than the profile image. Driven by AppSettings.denylistGenres.
+    public var genreBackgroundsEnabled: Bool
+    public var genreBackgrounds: [GenreBackground]
+    public var genreBackgroundOpacity: Double
+    public var genreBackgroundScale: Double
+    public var genreBackgroundOffsetX: Double
+    public var genreBackgroundOffsetY: Double
+
     // Album artwork overlay (shown above background, below text; hidden during cortinas)
     public var showAlbumArtwork: Bool
     public var albumArtworkOpacity: Double   // 0.0–1.0
     public var albumArtworkScale: Double     // multiplier, 1.0 = natural size scaled to fit
     public var albumArtworkOffsetX: Double   // points, horizontal pan
     public var albumArtworkOffsetY: Double   // points, vertical pan
+    public var albumArtworkEdgeFade: Double  // 0.0 = no fade, 1.0 = max radial edge fade
 
     // Configurable vertical order of text items on the display
     public var danceItemOrder: [DisplayTextItem]   // order for dance track display
@@ -191,11 +215,18 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 artistBackgroundScale: Double = 1.0,
                 artistBackgroundOffsetX: Double = 0.0,
                 artistBackgroundOffsetY: Double = 0.0,
+                genreBackgroundsEnabled: Bool = false,
+                genreBackgrounds: [GenreBackground] = [],
+                genreBackgroundOpacity: Double = 1.0,
+                genreBackgroundScale: Double = 1.0,
+                genreBackgroundOffsetX: Double = 0.0,
+                genreBackgroundOffsetY: Double = 0.0,
                 showAlbumArtwork: Bool = false,
                 albumArtworkOpacity: Double = 1.0,
                 albumArtworkScale: Double = 1.0,
                 albumArtworkOffsetX: Double = 0.0,
                 albumArtworkOffsetY: Double = 0.0,
+                albumArtworkEdgeFade: Double = 0.0,
                 danceItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .title, .singer, .lastTandaLabel, .trackCounter],
                 cortinaItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .singer, .lastTandaLabel],
                 showSinger: Bool = false,
@@ -286,11 +317,18 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.artistBackgroundScale    = artistBackgroundScale
         self.artistBackgroundOffsetX  = artistBackgroundOffsetX
         self.artistBackgroundOffsetY  = artistBackgroundOffsetY
+        self.genreBackgroundsEnabled = genreBackgroundsEnabled
+        self.genreBackgrounds        = genreBackgrounds
+        self.genreBackgroundOpacity  = genreBackgroundOpacity
+        self.genreBackgroundScale    = genreBackgroundScale
+        self.genreBackgroundOffsetX  = genreBackgroundOffsetX
+        self.genreBackgroundOffsetY  = genreBackgroundOffsetY
         self.showAlbumArtwork = showAlbumArtwork
         self.albumArtworkOpacity = albumArtworkOpacity
         self.albumArtworkScale = albumArtworkScale
         self.albumArtworkOffsetX = albumArtworkOffsetX
         self.albumArtworkOffsetY = albumArtworkOffsetY
+        self.albumArtworkEdgeFade = albumArtworkEdgeFade
         self.danceItemOrder = danceItemOrder
         self.cortinaItemOrder = cortinaItemOrder
         self.showSinger = showSinger
@@ -403,11 +441,18 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         artistBackgroundScale    = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundScale)    ?? 1.0
         artistBackgroundOffsetX  = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundOffsetX)  ?? 0.0
         artistBackgroundOffsetY  = try c.decodeIfPresent(Double.self,             forKey: .artistBackgroundOffsetY)  ?? 0.0
+        genreBackgroundsEnabled  = try c.decodeIfPresent(Bool.self,              forKey: .genreBackgroundsEnabled)  ?? false
+        genreBackgrounds         = try c.decodeIfPresent([GenreBackground].self, forKey: .genreBackgrounds)         ?? []
+        genreBackgroundOpacity   = try c.decodeIfPresent(Double.self,            forKey: .genreBackgroundOpacity)   ?? 1.0
+        genreBackgroundScale     = try c.decodeIfPresent(Double.self,            forKey: .genreBackgroundScale)     ?? 1.0
+        genreBackgroundOffsetX   = try c.decodeIfPresent(Double.self,            forKey: .genreBackgroundOffsetX)   ?? 0.0
+        genreBackgroundOffsetY   = try c.decodeIfPresent(Double.self,            forKey: .genreBackgroundOffsetY)   ?? 0.0
         showAlbumArtwork        = try c.decodeIfPresent(Bool.self,    forKey: .showAlbumArtwork)        ?? false
         albumArtworkOpacity     = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkOpacity)     ?? 1.0
         albumArtworkScale       = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkScale)       ?? 1.0
         albumArtworkOffsetX     = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkOffsetX)     ?? 0.0
         albumArtworkOffsetY     = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkOffsetY)     ?? 0.0
+        albumArtworkEdgeFade    = try c.decodeIfPresent(Double.self,  forKey: .albumArtworkEdgeFade)    ?? 0.0
         showSinger              = try c.decodeIfPresent(Bool.self,         forKey: .showSinger)              ?? false
         singerSource            = try c.decodeIfPresent(SingerSource.self, forKey: .singerSource)            ?? .comments
         showSingerDuringCortina = try c.decodeIfPresent(Bool.self,         forKey: .showSingerDuringCortina) ?? false
@@ -539,6 +584,33 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
             return !key.isEmpty && needle.contains(key)
         }
+    }
+
+    /// Resolves the genre-background image for the current track. Matching rules:
+    /// - If the detector classifies the genre as a cortina, returns the cortina-sentinel entry.
+    /// - Otherwise, looks for an entry whose genreKey matches the track's genre — exact case-insensitive
+    ///   match, or a word-boundary substring match if that key is in the detector's partial-match set.
+    /// Returns nil when the feature is disabled or no matching entry has an image.
+    public func matchingGenreBackground(
+        for trackGenre: String,
+        using detector: CortinaDetector
+    ) -> GenreBackground? {
+        guard genreBackgroundsEnabled else { return nil }
+        if detector.isCortina(genre: trackGenre) {
+            return genreBackgrounds.first { $0.isCortinaEntry && $0.imageFilename != nil }
+        }
+        let needle = trackGenre.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !needle.isEmpty else { return nil }
+        for entry in genreBackgrounds where !entry.isCortinaEntry && entry.imageFilename != nil {
+            let key = entry.genreKey.trimmingCharacters(in: .whitespaces).lowercased()
+            if key.isEmpty { continue }
+            if needle == key { return entry }
+            if detector.denylistPartialGenres.contains(key),
+               needle.hasPrefix(key + " ") || needle.contains(" " + key) {
+                return entry
+            }
+        }
+        return nil
     }
 
     public static let builtIns: [AppearanceProfile] = [.classic, .modern, .highContrast]

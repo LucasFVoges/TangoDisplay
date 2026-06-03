@@ -9,6 +9,7 @@ struct PresentationView: View {
 
     @State private var bgImage: NSImage? = nil
     @State private var artistBgImage: NSImage? = nil
+    @State private var genreBgImage: NSImage? = nil
 
     private var activeProfile: AppearanceProfile {
         if let draft = appState.draftProfile { return draft }
@@ -45,6 +46,7 @@ struct PresentationView: View {
                         Image(nsImage: art)
                             .resizable()
                             .scaledToFit()
+                            .mask(edgeFadeMask(fade: activeProfile.albumArtworkEdgeFade))
                             .scaleEffect(activeProfile.albumArtworkScale)
                             .offset(x: activeProfile.albumArtworkOffsetX,
                                     y: activeProfile.albumArtworkOffsetY)
@@ -70,7 +72,7 @@ struct PresentationView: View {
         .background {
             // Rendered behind the content by SwiftUI's layout contract —
             // .background() can never cover its parent view.
-            // Priority: matching artist background → profile background → background colour.
+            // Priority: artist background → genre background → profile background → background colour.
             ZStack {
                 activeProfile.backgroundSwiftUIColor
                     .ignoresSafeArea()
@@ -83,6 +85,16 @@ struct PresentationView: View {
                         .offset(x: activeProfile.artistBackgroundOffsetX,
                                 y: activeProfile.artistBackgroundOffsetY)
                         .opacity(activeProfile.artistBackgroundOpacity)
+                        .clipped()
+                        .ignoresSafeArea()
+                } else if let img = genreBgImage {
+                    Image(nsImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .scaleEffect(activeProfile.genreBackgroundScale)
+                        .offset(x: activeProfile.genreBackgroundOffsetX,
+                                y: activeProfile.genreBackgroundOffsetY)
+                        .opacity(activeProfile.genreBackgroundOpacity)
                         .clipped()
                         .ignoresSafeArea()
                 } else if let img = bgImage {
@@ -115,16 +127,22 @@ struct PresentationView: View {
         .onAppear {
             reloadBgImage()
             reloadArtistBgImage()
+            reloadGenreBgImage()
         }
         .onChange(of: activeProfile) { _ in
             reloadBgImage()
             reloadArtistBgImage()
+            reloadGenreBgImage()
         }
         .onChange(of: appState.displayState.mode) { _ in
             reloadArtistBgImage()
+            reloadGenreBgImage()
         }
         .onChange(of: appState.displayState.currentTrack?.artist ?? "") { _ in
             reloadArtistBgImage()
+        }
+        .onChange(of: appState.displayState.currentTrack?.genre ?? "") { _ in
+            reloadGenreBgImage()
         }
     }
 
@@ -149,6 +167,24 @@ struct PresentationView: View {
             return
         }
         artistBgImage = NSImage(contentsOf: appState.profileStore.imageURL(for: filename))
+    }
+
+    private func reloadGenreBgImage() {
+        // Active for both .playing (dance-genre matches) and .cortina (cortina-sentinel match).
+        // The detector itself decides which entry applies based on the current track's genre.
+        let mode = appState.displayState.mode
+        guard mode == .playing || mode == .cortina else {
+            genreBgImage = nil
+            return
+        }
+        let genre = appState.displayState.currentTrack?.genre ?? ""
+        let detector = settings.makeDetector()
+        guard let match = activeProfile.matchingGenreBackground(for: genre, using: detector),
+              let filename = match.imageFilename else {
+            genreBgImage = nil
+            return
+        }
+        genreBgImage = NSImage(contentsOf: appState.profileStore.imageURL(for: filename))
     }
 
     @ViewBuilder
@@ -176,6 +212,26 @@ struct PresentationView: View {
             )
         case .override:
             overrideView
+        }
+    }
+
+    private func edgeFadeMask(fade: Double) -> some View {
+        GeometryReader { geo in
+            // Reach the *corner* of the (square) artwork, not just the
+            // inscribed circle — otherwise the square's corners fall outside
+            // the gradient and disappear instantly at any non-zero fade.
+            let r = sqrt(geo.size.width * geo.size.width
+                       + geo.size.height * geo.size.height) * 0.5
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: .white,             location: 0.0),
+                    .init(color: .white,             location: max(0.0, 1.0 - fade)),
+                    .init(color: .white.opacity(0),  location: 1.0)
+                ]),
+                center: .center,
+                startRadius: 0,
+                endRadius: r
+            )
         }
     }
 

@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Setlist Remote">
+<meta name="theme-color" content="#060a13">
+<title>Setlist Remote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060a13;          /* HSL(222, 47%, 5%) — dark navy */
+    --surface: #0e1525;     /* elevated card */
+    --surface-2: #1a2335;   /* segmented controls, switch off */
+    --track: #1a2335;       /* slider track */
+    --text: #f4f4f4;
+    --muted: #8a93a8;       /* cool muted grey */
+    --accent: #FF6600;
+    --accent-dim: #993D00;
+    --ok: #4ade80;
+    --paused: #7dd3fc;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  html { background: var(--bg); }
+  body {
+    padding: max(env(safe-area-inset-top), 16px) 20px max(env(safe-area-inset-bottom), 20px);
+    max-width: 640px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 80% 50% at 15% -5%, rgba(60, 130, 255, 0.10), transparent 60%),
+      radial-gradient(ellipse 70% 45% at 90% 105%, rgba(80, 150, 255, 0.07), transparent 60%);
+    background-attachment: fixed;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    letter-spacing: -0.5px;
+    margin: 8px 0 24px;
+    line-height: 1;
+  }
+  .brand-triangle { width: 30px; height: 30px; color: var(--accent); flex-shrink: 0; }
+  .brand-wordmark { display: inline-block; line-height: 1; }
+  .brand-set { color: var(--accent); }
+  .brand-list { color: var(--text); }
+  .now-label--playing { color: var(--ok); }
+  .now-label--paused { color: var(--paused); }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin: 0 0 10px; }
+
+  .now-title { font-size: 22px; font-weight: 600; margin: 0 0 4px; line-height: 1.2; }
+  .now-artist { font-size: 15px; color: var(--text); margin: 0 0 4px; }
+  .now-meta { font-size: 13px; color: var(--muted); margin: 0; }
+  .now-meta .dot { margin: 0 6px; opacity: 0.5; }
+
+  .control { margin-bottom: 22px; }
+  .control:last-child { margin-bottom: 4px; }
+  .control-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .control-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .control-value { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  input[type=range] {
+    width: 100%;
+    height: 44px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    margin: 0;
+  }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; background: var(--track); border-radius: 3px; }
+  input[type=range]::-moz-range-track { height: 6px; background: var(--track); border-radius: 3px; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-top: -12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  }
+  input[type=range]:disabled::-webkit-slider-thumb { background: var(--muted); }
+  input[type=range]:disabled::-moz-range-thumb { background: var(--muted); }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; padding: 6px 0 14px; }
+  .toggle-label { font-size: 14px; }
+  .switch { position: relative; width: 50px; height: 30px; background: var(--surface-2); border-radius: 999px; cursor: pointer; transition: background 0.15s; }
+  .switch.on { background: var(--accent); }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: white; border-radius: 50%; transition: transform 0.15s; }
+  .switch.on::after { transform: translateX(20px); }
+
+  .segment { display: flex; gap: 4px; background: var(--surface-2); border-radius: 8px; padding: 4px; }
+  .segment button { flex: 1; padding: 10px 4px; background: transparent; border: 0; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 1px; border-radius: 6px; text-transform: uppercase; cursor: pointer; }
+  .segment button.active { background: var(--accent); color: #ffffff; }
+
+  details { margin-bottom: 16px; }
+  summary { cursor: pointer; padding: 14px 18px; background: var(--surface); border-radius: var(--radius); font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; list-style: none; user-select: none; display: flex; justify-content: space-between; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "▾"; color: var(--muted); transition: transform 0.15s; }
+  details[open] summary { border-radius: var(--radius) var(--radius) 0 0; }
+  details[open] summary::after { transform: rotate(180deg); }
+  details[open] .card { border-radius: 0 0 var(--radius) var(--radius); margin-top: 0; }
+
+  .status { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); text-align: center; padding: 4px 0 14px; }
+  .status.connected { color: var(--ok); }
+  .status.disconnected { color: var(--accent); }
+  .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: currentColor; margin-right: 6px; vertical-align: middle; box-shadow: 0 0 8px currentColor; }
+
+  /* Auth screen */
+  .auth { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; }
+  .auth-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 24px; text-transform: uppercase; }
+  .pin-input {
+    font-size: 36px; letter-spacing: 16px; text-align: center;
+    background: var(--surface); border: 2px solid var(--surface-2); color: var(--text);
+    border-radius: var(--radius); padding: 18px 14px; width: 240px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    text-indent: 16px;
+  }
+  .pin-input:focus { outline: none; border-color: var(--accent); }
+  .pin-error { color: var(--accent); font-size: 13px; margin-top: 16px; min-height: 18px; letter-spacing: 0.5px; }
+
+  .hidden { display: none !important; }
+
+  /* Stop scroll-bounce on iOS */
+  html { overscroll-behavior: none; }
+</style>
+</head>
+<body>
+
+<div id="auth" class="auth hidden">
+  <div class="brand">
+    <svg class="brand-triangle" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M9 5.5 L9 26.5 L26 16 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-wordmark"><span class="brand-set">Set</span><span class="brand-list">list</span></span>
+  </div>
+  <div class="auth-label">Enter PIN to connect</div>
+  <input id="pin" class="pin-input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+  <div id="pin-error" class="pin-error"></div>
+</div>
+
+<div id="main" class="hidden">
+  <div id="status" class="status disconnected"><span class="dot"></span><span id="status-text">Disconnected</span></div>
+  <div class="brand">
+    <svg class="brand-triangle" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M9 5.5 L9 26.5 L26 16 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-wordmark"><span class="brand-set">Set</span><span class="brand-list">list</span></span>
+  </div>
+
+  <div class="card" id="now-playing">
+    <p class="section-label" id="np-label">Now Playing</p>
+    <p class="now-title" id="np-title">—</p>
+    <p class="now-artist" id="np-artist"></p>
+    <p class="now-meta">
+      <span id="np-genre"></span>
+      <span class="dot" id="np-dot1">·</span>
+      <span id="np-tanda"></span>
+      <span class="dot" id="np-dot2">·</span>
+      <span id="np-time">0:00 / 0:00</span>
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="control">
+      <div class="control-header">
+        <span class="control-label">Volume</span>
+        <span class="control-value" id="vol-display">—</span>
+      </div>
+      <input id="vol" type="range" min="0" max="100" step="1" value="0">
+    </div>
+
+    <div class="control">
+      <div class="control-header">
+        <span class="control-label">Cortina Volume</span>
+        <span class="control-value" id="cort-display">—</span>
+      </div>
+      <input id="cort" type="range" min="-10" max="0" step="0.5" value="0">
+    </div>
+  </div>
+
+  <details>
+    <summary><span>Replay Gain</span></summary>
+    <div class="card">
+      <p class="section-label">Mode</p>
+      <div class="segment" id="rg-mode">
+        <button data-value="off">Off</button>
+        <button data-value="track">Track</button>
+        <button data-value="album">Album</button>
+        <button data-value="auto">Auto</button>
+      </div>
+
+      <div class="toggle" style="margin-top: 18px;">
+        <span class="toggle-label">Prevent clipping</span>
+        <div id="rg-clip" class="switch"></div>
+      </div>
+
+      <div class="control">
+        <div class="control-header">
+          <span class="control-label">Preamp</span>
+          <span class="control-value" id="rg-preamp-display">—</span>
+        </div>
+        <input id="rg-preamp" type="range" min="-12" max="6" step="0.5" value="0">
+      </div>
+
+      <div class="control">
+        <div class="control-header">
+          <span class="control-label">Target Loudness</span>
+          <span class="control-value" id="rg-lufs-display">—</span>
+        </div>
+        <input id="rg-lufs" type="range" min="-23" max="-14" step="0.5" value="-18">
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const STORAGE_KEY = 'tdRemotePin';
+
+  let ws = null;
+  let authed = false;
+  let attemptedAuth = false;
+  let state = null;
+  let suppressSetUntil = {};
+  let lastSnapshotAt = 0, lastSnapshotElapsed = 0, lastSnapshotDuration = 0, lastSnapshotPlaying = false;
+
+  const $ = (id) => document.getElementById(id);
+
+  // --- WebSocket lifecycle ---
+
+  function connect() {
+    setStatus(false, 'Connecting…');
+    const url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    try { ws = new WebSocket(url); } catch (e) { scheduleReconnect(); return; }
+    ws.onopen = () => setStatus(false, 'Authenticating…');
+    ws.onclose = () => {
+      // Treat a disconnect after an auth attempt (with no positive auth reply) as a
+      // rejected PIN — covers the case where the server's NACK frame doesn't make it
+      // out before the socket is closed.
+      if (attemptedAuth && !authed) {
+        localStorage.removeItem(STORAGE_KEY);
+        showAuth('Wrong PIN');
+      }
+      authed = false;
+      attemptedAuth = false;
+      setStatus(false, 'Reconnecting…');
+      scheduleReconnect();
+    };
+    ws.onerror = () => { try { ws.close(); } catch (e) {} };
+    ws.onmessage = (ev) => { try { onMessage(JSON.parse(ev.data)); } catch (e) {} };
+  }
+
+  function scheduleReconnect() {
+    setTimeout(connect, 1500);
+  }
+
+  function onMessage(msg) {
+    if (msg.type === 'hello' && msg.needsAuth) {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && saved.length === 4) {
+        attemptedAuth = true;
+        sendAuth(saved);
+      } else {
+        showAuth();
+      }
+    } else if (msg.type === 'auth') {
+      if (msg.ok) {
+        authed = true;
+        showMain();
+        setStatus(true, 'Connected');
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        showAuth('Wrong PIN');
+      }
+    } else if (msg.type === 'state') {
+      state = msg;
+      lastSnapshotAt = Date.now();
+      lastSnapshotElapsed = msg.nowPlaying?.elapsedSec || 0;
+      lastSnapshotDuration = msg.nowPlaying?.durationSec || 0;
+      lastSnapshotPlaying = (msg.nowPlaying?.playerState === 'playing' || msg.nowPlaying?.playerState === 'pauseArmed');
+      render();
+    }
+  }
+
+  function sendAuth(pin) {
+    if (!ws || ws.readyState !== 1) return;
+    ws.send(JSON.stringify({ type: 'auth', pin: pin }));
+  }
+
+  function sendSet(field, value) {
+    if (!authed || !ws || ws.readyState !== 1) return;
+    suppressSetUntil[field] = Date.now() + 200;
+    ws.send(JSON.stringify({ type: 'set', field: field, value: value }));
+  }
+
+  // --- Auth UI ---
+
+  function showAuth(errorText) {
+    $('main').classList.add('hidden');
+    $('auth').classList.remove('hidden');
+    $('pin-error').textContent = errorText || '';
+    const input = $('pin');
+    input.value = '';
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function showMain() {
+    $('auth').classList.add('hidden');
+    $('main').classList.remove('hidden');
+  }
+
+  $('pin').addEventListener('input', (e) => {
+    const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+    e.target.value = v;
+    if (v.length === 4) {
+      localStorage.setItem(STORAGE_KEY, v);
+      attemptedAuth = true;
+      sendAuth(v);
+    }
+  });
+
+  // --- Status ---
+
+  function setStatus(connected, text) {
+    const el = $('status');
+    if (!el) return;
+    el.classList.toggle('connected', connected);
+    el.classList.toggle('disconnected', !connected);
+    $('status-text').textContent = text;
+  }
+
+  // --- Render ---
+
+  function fmtTime(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function shouldSuppress(field) {
+    return (suppressSetUntil[field] || 0) > Date.now();
+  }
+
+  function render() {
+    if (!state) return;
+    const np = state.nowPlaying || {};
+
+    // Now playing — `pauseArmed` still has audio flowing on the Mac (TangoDisplay's
+    // first pause press only arms the pause; audio doesn't stop until the second press),
+    // so we treat it as playing here so the label matches what the user actually hears.
+    const isPlaying = (np.playerState === 'playing' || np.playerState === 'pauseArmed');
+    const label = $('np-label');
+    label.textContent = isPlaying ? 'Now Playing' : 'Paused';
+    label.classList.toggle('now-label--playing', isPlaying);
+    label.classList.toggle('now-label--paused', !isPlaying);
+    $('np-title').textContent = np.title || '—';
+    $('np-artist').textContent = np.artist || '';
+    $('np-artist').style.display = np.artist ? '' : 'none';
+    $('np-genre').textContent = np.genre || '';
+    $('np-dot1').style.display = (np.genre && np.tanda) ? '' : 'none';
+    $('np-tanda').textContent = np.tanda
+      ? ('Track ' + np.tanda.current + (np.tanda.total ? ' of ' + np.tanda.total : ''))
+      : '';
+    $('np-dot2').style.display = (np.tanda || np.genre) && (np.durationSec || np.elapsedSec !== undefined) ? '' : 'none';
+    updateTime();
+
+    // Volume
+    if (!shouldSuppress('mainVolume')) {
+      $('vol').value = Math.round((state.mainVolume || 0) * 100);
+      $('vol-display').textContent = Math.round((state.mainVolume || 0) * 100) + '%';
+    }
+
+    // Cortina
+    if (!shouldSuppress('cortinaVolumeDb')) {
+      $('cort').value = state.cortinaVolumeDb || 0;
+      $('cort-display').textContent = fmtSignedDb(state.cortinaVolumeDb || 0);
+    }
+
+    // Replay gain
+    const rg = state.replayGain || {};
+    const mode = rg.mode || 'off';
+    document.querySelectorAll('#rg-mode button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.value === mode);
+    });
+    if (!shouldSuppress('replayGain.preventClipping')) {
+      $('rg-clip').classList.toggle('on', !!rg.preventClipping);
+    }
+    if (!shouldSuppress('replayGain.preampDb')) {
+      $('rg-preamp').value = rg.preampDb || 0;
+      $('rg-preamp-display').textContent = fmtSignedDb(rg.preampDb || 0);
+    }
+    $('rg-preamp').disabled = (mode === 'off');
+    if (!shouldSuppress('replayGain.targetLufs')) {
+      $('rg-lufs').value = rg.targetLufs || -18;
+      $('rg-lufs-display').textContent = (rg.targetLufs || -18).toFixed(1) + ' LUFS';
+    }
+    $('rg-lufs').disabled = (mode !== 'auto');
+  }
+
+  function fmtSignedDb(v) {
+    const s = v >= 0 ? '+' : '';
+    return s + v.toFixed(1) + ' dB';
+  }
+
+  function updateTime() {
+    if (!state) return;
+    let elapsed = lastSnapshotElapsed;
+    if (lastSnapshotPlaying) {
+      elapsed += (Date.now() - lastSnapshotAt) / 1000;
+    }
+    if (lastSnapshotDuration > 0 && elapsed > lastSnapshotDuration) {
+      elapsed = lastSnapshotDuration;
+    }
+    $('np-time').textContent = fmtTime(elapsed) + ' / ' + fmtTime(lastSnapshotDuration);
+  }
+
+  setInterval(updateTime, 500);
+
+  // --- Inputs ---
+
+  function wireSlider(elId, displayId, field, valueFn, displayFn) {
+    const el = $(elId);
+    const disp = $(displayId);
+    el.addEventListener('input', () => {
+      const v = parseFloat(el.value);
+      disp.textContent = displayFn(v);
+      sendSet(field, valueFn(v));
+    });
+  }
+
+  wireSlider('vol', 'vol-display', 'mainVolume',
+    (v) => v / 100,
+    (v) => Math.round(v) + '%');
+
+  wireSlider('cort', 'cort-display', 'cortinaVolumeDb',
+    (v) => v,
+    (v) => fmtSignedDb(v));
+
+  wireSlider('rg-preamp', 'rg-preamp-display', 'replayGain.preampDb',
+    (v) => v,
+    (v) => fmtSignedDb(v));
+
+  wireSlider('rg-lufs', 'rg-lufs-display', 'replayGain.targetLufs',
+    (v) => v,
+    (v) => v.toFixed(1) + ' LUFS');
+
+  document.querySelectorAll('#rg-mode button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.value;
+      document.querySelectorAll('#rg-mode button').forEach(b => b.classList.toggle('active', b === btn));
+      sendSet('replayGain.mode', v);
+    });
+  });
+
+  $('rg-clip').addEventListener('click', () => {
+    const sw = $('rg-clip');
+    const next = !sw.classList.contains('on');
+    sw.classList.toggle('on', next);
+    sendSet('replayGain.preventClipping', next);
+  });
+
+  // Go.
+  connect();
+})();
+</script>
+
+</body>
+</html>

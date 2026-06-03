@@ -29,7 +29,7 @@ When a row is selected, the editor panel shows:
 |---|---|
 | **Enable** toggle | Turns the transformation on or off for this field |
 | **Pattern** | The regex pattern to match against the field value |
-| **Replace with** | The replacement template. Use `$1`, `$2` etc. to insert capture groups from the pattern |
+| **Replace with** | The replacement template. Use `$1`, `$2` etc. to insert capture groups from the pattern. Use `\n` for a line break (also `\r`, `\t`, and `\\` for a literal backslash) |
 | **Test input** | A sample value to test your pattern against — edit this to try different inputs |
 | **Result** | The live transformed output, updated as you type |
 
@@ -93,6 +93,33 @@ $1
 **Output:**
 ```
 Any Track Name
+```
+
+---
+
+### Split a combined field across two lines
+
+If your library tags artist and title together in a single field (e.g. `Carlos Di Sarli - Verdemar`) you can capture each part and put them on separate lines on the dancer display using `\n` in the replacement.
+
+**Input:**
+```
+Carlos Di Sarli - Verdemar
+```
+
+**Pattern:**
+```
+^(.+?)\s-\s(.+)$
+```
+
+**Replace with:**
+```
+$1\n$2
+```
+
+**Output:**
+```
+Carlos Di Sarli
+Verdemar
 ```
 
 ---

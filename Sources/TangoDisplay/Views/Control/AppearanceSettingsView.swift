@@ -30,6 +30,7 @@ struct AppearanceSettingsView: View {
     @State private var didSave = false
     @State private var bgThumbnail: NSImage? = nil
     @State private var artistBgThumbnails: [UUID: NSImage] = [:]
+    @State private var genreBgThumbnails: [UUID: NSImage] = [:]
     @State private var danceDragItem: DisplayTextItem? = nil
     @State private var cortinaTrackDragItem: DisplayTextItem? = nil
     @State private var cortinaUpDragItem: DisplayTextItem? = nil
@@ -63,6 +64,9 @@ struct AppearanceSettingsView: View {
             appState.hasUnsavedAppearanceChanges = false
         }
         .onChange(of: appState.settings.activeProfileID) { _ in loadWorkingCopy() }
+        .onChange(of: settings.denylistGenres) { _ in
+            syncGenreBackgroundsToDenylist()
+        }
         .onChange(of: working) { _ in
             appState.draftProfile = working
             appState.hasUnsavedAppearanceChanges = isDirty
@@ -137,7 +141,11 @@ struct AppearanceSettingsView: View {
                                  onPickArtistImage: pickArtistImage(for:),
                                  onClearArtistImage: clearArtistImage(for:),
                                  onAddArtistBackground: addArtistBackground,
-                                 onRemoveArtistBackground: removeArtistBackground(_:))
+                                 onRemoveArtistBackground: removeArtistBackground(_:),
+                                 genreBgThumbnails: genreBgThumbnails,
+                                 onPickGenreImage: pickGenreImage(for:),
+                                 onClearGenreImage: clearGenreImage(for:),
+                                 cortinaRowLabel: settings.cortinaLabel)
         case .cortina:
             AppearanceCortinaTab(working: $working)
         case .lastTanda:
@@ -222,6 +230,8 @@ struct AppearanceSettingsView: View {
         appState.draftProfile = working
         reloadThumbnail()
         reloadArtistBgThumbnails()
+        syncGenreBackgroundsToDenylist()
+        reloadGenreBgThumbnails()
     }
 
     private func reloadThumbnail() {
@@ -326,6 +336,109 @@ struct AppearanceSettingsView: View {
             working.artistBackgrounds[idx].imageFilename = nil
         }
         artistBgThumbnails.removeValue(forKey: entry.id)
+    }
+
+    // MARK: - Genre backgrounds
+
+    /// Reconciles `working.genreBackgrounds` against the current denylist. Rows are not user-managed
+    /// here — the per-genre rows mirror Cortina-Rules denylist entries, plus exactly one cortina
+    /// sentinel row (genreKey == "") for non-dance tracks.
+    private func syncGenreBackgroundsToDenylist() {
+        let desired = settings.denylistGenres
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        var updated = working.genreBackgrounds
+
+        // Drop dance-genre rows whose key no longer appears in the denylist.
+        for entry in updated where !entry.isCortinaEntry {
+            if !desired.contains(where: { $0.caseInsensitiveCompare(entry.genreKey) == .orderedSame }) {
+                if let filename = entry.imageFilename {
+                    try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: filename))
+                }
+                genreBgThumbnails.removeValue(forKey: entry.id)
+            }
+        }
+        updated.removeAll { entry in
+            !entry.isCortinaEntry &&
+            !desired.contains(where: { $0.caseInsensitiveCompare(entry.genreKey) == .orderedSame })
+        }
+
+        // Append missing denylist entries.
+        for key in desired {
+            if !updated.contains(where: { !$0.isCortinaEntry && $0.genreKey.caseInsensitiveCompare(key) == .orderedSame }) {
+                updated.append(GenreBackground(genreKey: key))
+            }
+        }
+
+        // Ensure exactly one cortina sentinel row exists.
+        let cortinaRows = updated.filter { $0.isCortinaEntry }
+        if cortinaRows.isEmpty {
+            updated.append(GenreBackground(genreKey: ""))
+        } else if cortinaRows.count > 1 {
+            // Keep the first; remove duplicates and their files.
+            var keptOne = false
+            updated = updated.compactMap { entry in
+                guard entry.isCortinaEntry else { return entry }
+                if !keptOne { keptOne = true; return entry }
+                if let filename = entry.imageFilename {
+                    try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: filename))
+                }
+                genreBgThumbnails.removeValue(forKey: entry.id)
+                return nil
+            }
+        }
+
+        if updated != working.genreBackgrounds {
+            working.genreBackgrounds = updated
+        }
+    }
+
+    private func reloadGenreBgThumbnails() {
+        genreBgThumbnails = [:]
+        for entry in working.genreBackgrounds {
+            guard let filename = entry.imageFilename else { continue }
+            let url = appState.profileStore.imageURL(for: filename)
+            if let img = NSImage(contentsOf: url) {
+                genreBgThumbnails[entry.id] = img
+            }
+        }
+    }
+
+    private func pickGenreImage(for entry: GenreBackground) {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        let label = entry.isCortinaEntry ? settings.cortinaLabel : entry.genreKey
+        panel.message = "Choose a background image for \(label)"
+        guard panel.runModal() == .OK, let src = panel.url else { return }
+
+        let ext = src.pathExtension.isEmpty ? "jpg" : src.pathExtension
+        let filename = "genre-\(entry.id.uuidString).\(ext)"
+        let dest = appState.profileStore.imageURL(for: filename)
+        appState.profileStore.createImagesDirectoryIfNeeded()
+
+        if let old = entry.imageFilename, old != filename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: old))
+        }
+        if FileManager.default.fileExists(atPath: dest.path) {
+            try? FileManager.default.removeItem(at: dest)
+        }
+        try? FileManager.default.copyItem(at: src, to: dest)
+
+        if let idx = working.genreBackgrounds.firstIndex(where: { $0.id == entry.id }) {
+            working.genreBackgrounds[idx].imageFilename = filename
+        }
+        genreBgThumbnails[entry.id] = NSImage(contentsOf: dest)
+    }
+
+    private func clearGenreImage(for entry: GenreBackground) {
+        if let filename = entry.imageFilename {
+            try? FileManager.default.removeItem(at: appState.profileStore.imageURL(for: filename))
+        }
+        if let idx = working.genreBackgrounds.firstIndex(where: { $0.id == entry.id }) {
+            working.genreBackgrounds[idx].imageFilename = nil
+        }
+        genreBgThumbnails.removeValue(forKey: entry.id)
     }
 
     private func saveProfile() {

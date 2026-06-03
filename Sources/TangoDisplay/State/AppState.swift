@@ -38,6 +38,7 @@ final class AppState: ObservableObject {
     let versionChecker = VersionChecker()
     let setlist = SetlistManager()
     let microphoneMonitor = MicrophoneMonitor()
+    lazy var setlistRemoteBridge: RemoteControlBridge = RemoteControlBridge(appState: self, settings: self.settings)
     private var activeSource: any MusicPlayerSource = MusicPoller()  // replaced in start()
     private var cancellables = Set<AnyCancellable>()
 
@@ -83,6 +84,49 @@ final class AppState: ObservableObject {
         observePlayerSelection()
         observeJRiverZone()
         observeMicrophoneMonitor()
+        observeRemoteControlEnabled()
+    }
+
+    private func observeRemoteControlEnabled() {
+        settings.$remoteControlEnabled
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] enabled in self?.handleRemoteControlEnabledChange(enabled) }
+            .store(in: &cancellables)
+    }
+
+    private func handleRemoteControlEnabledChange(_ enabled: Bool) {
+        if enabled {
+            // Attach the transport on first enable; subsequent enables just resume.
+            // The listener stays bound across off/on toggles to avoid the EADDRINUSE
+            // (NWError 48) race that hits when a TCP listener is cancelled and rebound
+            // on the same port in quick succession.
+            if !setlistRemoteBridge.isRunning {
+                let transport = HTTPServerTransport(htmlProvider: { AppState.loadRemoteUIHTML() })
+                do {
+                    try setlistRemoteBridge.attach(transport: transport)
+                } catch {
+                    setlistRemoteBridge.reportStartError("Failed to start server: \(error.localizedDescription)")
+                    NSLog("[TangoDisplay] Setlist Remote failed to start: \(error)")
+                }
+            } else {
+                setlistRemoteBridge.resume()
+            }
+        } else {
+            setlistRemoteBridge.pause()
+        }
+    }
+
+    private static func loadRemoteUIHTML() -> Data {
+        if let url = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "RemoteUI"),
+           let data = try? Data(contentsOf: url) {
+            return data
+        }
+        if let url = Bundle.module.url(forResource: "index", withExtension: "html", subdirectory: "RemoteUI"),
+           let data = try? Data(contentsOf: url) {
+            return data
+        }
+        return Data("<!doctype html><meta charset=utf-8><h1>Setlist Remote UI missing</h1>".utf8)
     }
 
     // MARK: - Lifecycle
@@ -93,6 +137,7 @@ final class AppState: ObservableObject {
         activeSource.start()
         versionChecker.startPeriodicChecks()
         if settings.decibelMeterEnabled { microphoneMonitor.start() }
+        if settings.remoteControlEnabled { handleRemoteControlEnabledChange(true) }
     }
 
     func pollNow() {

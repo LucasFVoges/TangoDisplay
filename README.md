@@ -49,7 +49,7 @@ A native macOS menu-bar app that shows a clean, fullscreen dancer display on an 
 ### Option A — Download pre-built app (easiest)
 
 1. Go to the [Releases](https://github.com/richardsladetdj-creator/TangoDisplay/releases) page
-2. Download `TangoDisplay-v3.22.1-universal.zip` (works on both Apple Silicon and Intel Macs)
+2. Download `TangoDisplay-v3.23.0-universal.zip` (works on both Apple Silicon and Intel Macs)
 3. Unzip and drag `TangoDisplay.app` to your `/Applications` folder
 4. **Right-click › Open** on first launch (required because the app is ad-hoc signed, not notarised)
 5. Grant the permissions macOS requests (see [Permissions](#permissions) below)
@@ -135,6 +135,12 @@ Key design decisions:
 ---
 
 ## Changelog
+
+### v3.23.0
+- **Setlist Remote** (new): toggle on in **Settings › Player › Setlist Remote** to control volume, cortina volume, and replay gain from your phone over Wi-Fi. A built-in web page shows the URL and a QR code; a 4-digit PIN regenerates each time the app launches.
+- **Genre Backgrounds** (new): enable in **Appearance › Artwork & Motion** to assign a background image per genre (and one for cortinas), driven by your Cortina Rules entries. Priority: artist → genre → profile background → background colour.
+- **Multi-line Advanced Transformations**: use `\n` in a transformation's *Replace with* field to split the displayed value across lines (also `\r`, `\t`, `\\`). The live preview renders the wrapped result.
+- **Album Artwork Edge Fade** (new): new slider in **Appearance › Artwork & Motion › Album Artwork** that softly fades the edges of album art into the background.
 
 ### v3.22.1
 - **Fix**: dragging a large multi-track selection from Music.app into the Setlist no longer truncates to a handful of tracks. The drop handler was reading the Music-specific promise pasteboard flavor (present on only a subset of items) instead of `public.file-url` (present on nearly every item), causing the rest of the selection to be silently dropped.

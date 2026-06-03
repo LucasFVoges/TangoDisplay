@@ -12,9 +12,23 @@ struct AppearanceArtworkTab: View {
     let onClearArtistImage: (ArtistBackground) -> Void
     let onAddArtistBackground: () -> Void
     let onRemoveArtistBackground: (ArtistBackground) -> Void
+    let genreBgThumbnails: [UUID: NSImage]
+    let onPickGenreImage: (GenreBackground) -> Void
+    let onClearGenreImage: (GenreBackground) -> Void
+    let cortinaRowLabel: String
 
     @FocusState private var focusedEntryId: UUID?
     @State private var prevArtistCount: Int = 0
+
+    private var orderedGenreBackgrounds: [GenreBackground] {
+        let dance = working.genreBackgrounds.filter { !$0.isCortinaEntry }
+        let cortina = working.genreBackgrounds.filter { $0.isCortinaEntry }
+        return dance + cortina
+    }
+
+    private var anyGenreImageSet: Bool {
+        working.genreBackgrounds.contains { $0.imageFilename != nil }
+    }
 
     var body: some View {
         Form {
@@ -43,6 +57,13 @@ struct AppearanceArtworkTab: View {
                         Text("Opacity")
                         Slider(value: $working.albumArtworkOpacity, in: 0...1)
                         Text(String(format: "%.0f%%", working.albumArtworkOpacity * 100))
+                            .monospacedDigit()
+                            .frame(width: 44)
+                    }
+                    HStack {
+                        Text("Edge Fade")
+                        Slider(value: $working.albumArtworkEdgeFade, in: 0...1)
+                        Text(String(format: "%.0f%%", working.albumArtworkEdgeFade * 100))
                             .monospacedDigit()
                             .frame(width: 44)
                     }
@@ -196,7 +217,69 @@ struct AppearanceArtworkTab: View {
             } footer: {
                 if working.artistBackgroundsEnabled {
                     Label {
-                        Text("Artist Backgrounds override the profile background image when the current track artist matches. Priority: matching artist → profile background → background colour.")
+                        Text("Artist Backgrounds override genre, profile, and colour backgrounds when the current track artist matches. Priority: artist → genre → profile → background colour.")
+                    } icon: {
+                        Image(systemName: "info.circle")
+                    }
+                }
+            }
+
+            Section {
+                Toggle("Enable genre backgrounds", isOn: $working.genreBackgroundsEnabled)
+
+                if working.genreBackgroundsEnabled {
+                    if orderedGenreBackgrounds.isEmpty {
+                        Label {
+                            Text("No genres configured. Add entries under Cortina Rules to create per-genre background slots.")
+                        } icon: {
+                            Image(systemName: "info.circle")
+                        }
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                    } else {
+                        ForEach(orderedGenreBackgrounds) { entry in
+                            genreEntryRow(entry: entry)
+                        }
+                    }
+
+                    if anyGenreImageSet {
+                        HStack {
+                            Text("Opacity")
+                            Slider(value: $working.genreBackgroundOpacity, in: 0...1)
+                            Text(String(format: "%.0f%%", working.genreBackgroundOpacity * 100))
+                                .monospacedDigit()
+                                .frame(width: 36)
+                        }
+                        HStack {
+                            Text("Scale")
+                            Slider(value: $working.genreBackgroundScale, in: 0.1...5.0)
+                            Text(String(format: "%.2f×", working.genreBackgroundScale))
+                                .monospacedDigit()
+                                .frame(width: 44)
+                        }
+                        HStack {
+                            Text("Horizontal Position")
+                            Slider(value: $working.genreBackgroundOffsetX, in: -2000...2000)
+                            Text(String(format: "%+.0f", working.genreBackgroundOffsetX))
+                                .monospacedDigit()
+                                .frame(width: 48)
+                        }
+                        HStack {
+                            Text("Vertical Position")
+                            Slider(value: $working.genreBackgroundOffsetY, in: -2000...2000)
+                            Text(String(format: "%+.0f", working.genreBackgroundOffsetY))
+                                .monospacedDigit()
+                                .frame(width: 48)
+                        }
+                    }
+                }
+            } header: {
+                Text("Genre Backgrounds")
+                    .foregroundColor(ControlTheme.accent)
+            } footer: {
+                if working.genreBackgroundsEnabled {
+                    Label {
+                        Text("Genre Backgrounds override the profile background image when the current track's genre matches a Cortina-Rules entry. Configure entries under Cortina Rules. Priority: artist → genre → profile → background colour.")
                     } icon: {
                         Image(systemName: "info.circle")
                     }
@@ -284,6 +367,46 @@ struct AppearanceArtworkTab: View {
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private func genreEntryRow(entry: GenreBackground) -> some View {
+        let label = entry.isCortinaEntry ? "\(cortinaRowLabel) (non-dance)" : entry.genreKey
+        HStack(spacing: 10) {
+            Group {
+                if let thumb = genreBgThumbnails[entry.id] {
+                    Image(nsImage: thumb)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 40, height: 40)
+                        .clipped()
+                        .cornerRadius(4)
+                } else {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.secondary.opacity(0.2))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: entry.isCortinaEntry ? "pause.rectangle" : "music.note")
+                                .foregroundColor(.secondary)
+                        )
+                }
+            }
+
+            Text(label)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(1)
+
+            Button(entry.imageFilename == nil ? "Pick Image…" : "Change Image…") {
+                onPickGenreImage(entry)
+            }
+            .buttonStyle(.bordered)
+
+            if entry.imageFilename != nil {
+                Button("Clear") { onClearGenreImage(entry) }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
+            }
         }
     }
 }

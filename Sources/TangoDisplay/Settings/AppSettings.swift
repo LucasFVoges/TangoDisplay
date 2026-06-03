@@ -177,6 +177,19 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(cortinaVolumeReductionDb, forKey: kPrefix + "cortinaVolumeReductionDb") }
     }
 
+    // MARK: - Setlist Remote
+
+    @Published var remoteControlEnabled: Bool {
+        didSet { UserDefaults.standard.set(remoteControlEnabled, forKey: kPrefix + "remoteControlEnabled") }
+    }
+
+    /// Regenerated on every app launch — not persisted.
+    @Published private(set) var remoteControlPin: String = ""
+
+    func regenerateRemoteControlPin() {
+        remoteControlPin = String(format: "%04d", Int.random(in: 0...9999))
+    }
+
     // MARK: - Built-in player track info
 
     @Published var duplicateTrackProtection: Bool {
@@ -352,6 +365,8 @@ final class AppSettings: ObservableObject {
         autoFadeCortinasEnabled = ud.object(forKey: kPrefix + "autoFadeCortinasEnabled").flatMap { $0 as? Bool } ?? false
         cortinaPlayTime = ud.object(forKey: kPrefix + "cortinaPlayTime").flatMap { $0 as? Double } ?? 30.0
         cortinaVolumeReductionDb = ud.object(forKey: kPrefix + "cortinaVolumeReductionDb").flatMap { $0 as? Double } ?? 0.0
+        remoteControlEnabled = ud.object(forKey: kPrefix + "remoteControlEnabled").flatMap { $0 as? Bool } ?? false
+        remoteControlPin = String(format: "%04d", Int.random(in: 0...9999))
         duplicateTrackProtection = ud.object(forKey: kPrefix + "duplicateTrackProtection")
             .flatMap { $0 as? Bool } ?? false
         showYear = ud.object(forKey: kPrefix + "showYear").flatMap { $0 as? Bool } ?? true
@@ -442,8 +457,26 @@ final class AppSettings: ObservableObject {
               rule.enabled, !rule.pattern.isEmpty else { return value }
         guard let regex = try? NSRegularExpression(pattern: rule.pattern) else { return value }
         let range = NSRange(value.startIndex..., in: value)
-        let result = regex.stringByReplacingMatches(in: value, range: range, withTemplate: rule.replacement)
-        return result.trimmingCharacters(in: .whitespaces).isEmpty ? value : result
+        let prepared = Self.encodeReplacementEscapes(rule.replacement)
+        let result = regex.stringByReplacingMatches(in: value, range: range, withTemplate: prepared)
+        let decoded = Self.restoreReplacementSentinels(result)
+        return decoded.trimmingCharacters(in: .whitespaces).isEmpty ? value : decoded
+    }
+
+    // Substitute user-typed escapes with sentinel chars BEFORE the NSRegularExpression
+    // template engine runs, so the engine doesn't consume the leading backslash.
+    static func encodeReplacementEscapes(_ s: String) -> String {
+        s.replacingOccurrences(of: "\\\\", with: "\u{0000}")
+            .replacingOccurrences(of: "\\n", with: "\u{0001}")
+            .replacingOccurrences(of: "\\r", with: "\u{0002}")
+            .replacingOccurrences(of: "\\t", with: "\u{0003}")
+    }
+
+    static func restoreReplacementSentinels(_ s: String) -> String {
+        s.replacingOccurrences(of: "\u{0000}", with: "\\")
+            .replacingOccurrences(of: "\u{0001}", with: "\n")
+            .replacingOccurrences(of: "\u{0002}", with: "\r")
+            .replacingOccurrences(of: "\u{0003}", with: "\t")
     }
 
     func makeDetector() -> CortinaDetector {

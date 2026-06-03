@@ -185,8 +185,10 @@ private struct FieldEditorPanel: View {
         guard regexStatus == .matched,
               let regex = try? NSRegularExpression(pattern: patternText) else { return testInput }
         let r = NSRange(testInput.startIndex..., in: testInput)
-        let s = regex.stringByReplacingMatches(in: testInput, range: r, withTemplate: replacementText)
-        let trimmed = s.trimmingCharacters(in: .whitespaces)
+        let prepared = AppSettings.encodeReplacementEscapes(replacementText)
+        let s = regex.stringByReplacingMatches(in: testInput, range: r, withTemplate: prepared)
+        let decoded = AppSettings.restoreReplacementSentinels(s)
+        let trimmed = decoded.trimmingCharacters(in: .whitespaces)
         return trimmed.isEmpty ? testInput : trimmed
     }
 
@@ -288,7 +290,7 @@ private struct FieldEditorPanel: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("The replacement text. Use $1, $2, etc. for capture groups.")
+                .help("The replacement text. Use $1, $2, etc. for capture groups. Use \\n for a line break.")
             }
             TextField("", text: $replacementText)
                 .textFieldStyle(.roundedBorder)
@@ -298,7 +300,7 @@ private struct FieldEditorPanel: View {
                     rule.replacement = newVal
                     settings.trackTransforms[field.rawValue] = rule
                 }
-            Text("The replacement text. Use $1, $2, etc. for capture groups.")
+            Text("Use $1, $2 for capture groups. Use \\n for a line break.")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -334,6 +336,8 @@ private struct FieldEditorPanel: View {
                     Text(resultString)
                         .font(.body)
                         .foregroundColor(regexStatus == .matched ? .green : .primary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(8)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color(nsColor: .controlBackgroundColor))

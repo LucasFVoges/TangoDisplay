@@ -22,11 +22,12 @@ struct PlayingView: View {
                     }
                 case .artist:
                     if profile.showArtistDance, let artist = state.currentTrack?.artist, !artist.isEmpty {
-                        Text(settings.transform(artist, for: .artist))
+                        let displayArtist = settings.transform(artist, for: .artist)
+                        Text(displayArtist)
                             .font(profile.artistFont)
                             .foregroundColor(profile.artistSwiftUIColor)
                             .multilineTextAlignment(.center)
-                            .lineLimit(2)
+                            .lineLimit(Self.dynamicLineLimit(displayArtist))
                             .minimumScaleFactor(0.5)
                     }
                 case .year:
@@ -41,11 +42,12 @@ struct PlayingView: View {
                     }
                 case .title:
                     if profile.showTitleDance, let title = state.currentTrack?.title, !title.isEmpty {
-                        Text(settings.transform(title, for: .title))
+                        let displayTitle = settings.transform(title, for: .title)
+                        Text(displayTitle)
                             .font(profile.titleFont)
                             .foregroundColor(profile.titleSwiftUIColor)
                             .multilineTextAlignment(.center)
-                            .lineLimit(2)
+                            .lineLimit(Self.dynamicLineLimit(displayTitle))
                             .minimumScaleFactor(0.5)
                     }
                 case .singer:
@@ -65,7 +67,7 @@ struct PlayingView: View {
                                 .font(profile.singerFont)
                                 .foregroundColor(profile.singerSwiftUIColor)
                                 .multilineTextAlignment(.center)
-                                .lineLimit(2)
+                                .lineLimit(Self.dynamicLineLimit(singer))
                                 .minimumScaleFactor(0.5)
                         }
                     }
@@ -95,5 +97,9 @@ struct PlayingView: View {
         }
         .padding(.horizontal, 60)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    static func dynamicLineLimit(_ s: String) -> Int {
+        min(4, max(2, s.components(separatedBy: "\n").count))
     }
 }

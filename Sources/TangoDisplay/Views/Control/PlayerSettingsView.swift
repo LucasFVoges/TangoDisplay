@@ -201,6 +201,10 @@ struct PlayerSettingsView: View {
                     groupHeading("Playback")
                 }
 
+                // MARK: Setlist Remote
+
+                SetlistRemoteSettingsSection(bridge: appState.setlistRemoteBridge)
+
                 // MARK: Cortinas
 
                 Section {

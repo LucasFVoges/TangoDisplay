@@ -23,7 +23,10 @@ let package = Package(
                 .product(name: "Sparkle", package: "Sparkle")
             ],
             path: "Sources/TangoDisplay",
-            resources: [.copy("Resources/SetlistLogo.png")],
+            resources: [
+                .copy("Resources/SetlistLogo.png"),
+                .copy("Resources/RemoteUI")
+            ],
             linkerSettings: [
                 .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])
             ]

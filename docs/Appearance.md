@@ -127,6 +127,7 @@ Configure how album artwork appears on the dancer screen. Artwork visibility is 
 | Control | Description |
 |---|---|
 | **Opacity** | 0 % = invisible, 100 % = fully opaque |
+| **Edge Fade** | 0 % = hard edges, 100 % = maximum radial fade. Softly blends the edges of the artwork into the background |
 | **Scale** | 1× = natural size; increase to fill more of the screen |
 | **Horizontal offset** | Move the artwork left (negative) or right (positive) |
 | **Vertical offset** | Move the artwork up (negative) or down (positive) |
@@ -164,7 +165,23 @@ Map specific artist names to background images. When enabled and the currently p
 
 > Each entry must have both a name and an image before you can save. Entries missing either are flagged with a red indicator and the Save button is disabled until resolved.
 
-Priority order: **matching artist background → profile background image → background colour**
+Priority order: **matching artist background → matching genre background → profile background image → background colour**
+
+### Genre Backgrounds
+
+Map specific genres to background images. The list of entries is driven by your **Cortina Rules** — every genre keyword you've added there appears here as a slot, plus one extra **Cortina** slot for when a cortina is playing. When enabled and the playing track's genre matches an entry that has an image set, the matching image is shown.
+
+| Control | Description |
+|---|---|
+| **Enable genre backgrounds** | Master switch for this feature |
+| **Genre rows** | One row per Cortina Rules entry, plus a dedicated row for cortinas. Use **Pick Image… / Change Image…** to set an image, **Clear** to remove it |
+| **Opacity** | Opacity applied to all genre background images |
+| **Scale** | Zoom applied to all genre background images |
+| **Horizontal / Vertical** | Pan all genre background images |
+
+> To add or remove genre slots, edit your entries in **Cortina Rules**. Slots without an image are simply skipped at runtime.
+
+Priority order: **matching artist background → matching genre background → profile background image → background colour**
 
 ---
 

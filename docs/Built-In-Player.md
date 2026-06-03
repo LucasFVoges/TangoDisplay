@@ -538,6 +538,48 @@ Enable **Exclusive mode (Hog Mode)** in **Player Settings** to give TangoDisplay
 
 ---
 
+## Setlist Remote
+
+The Setlist Remote lets you control the built-in player from your phone (or any device with a browser) over the same Wi-Fi network. It serves a small built-in web page with sliders for the main controls — useful when you want to nudge levels from the dance floor without going back to the laptop.
+
+Enable it in **Settings › Player › Setlist Remote**.
+
+> Setlist Remote is for the built-in player only — its sliders move the built-in player's volume and ReplayGain settings.
+
+### What the phone page controls
+
+| Control | What it does |
+|---|---|
+| **Volume** | Master output level of the built-in player |
+| **Cortina volume** | Per-cortina attenuation (the same slider as **Player › Cortinas › Cortina volume**) |
+| **Replay gain** | The active ReplayGain pre-amp / fallback gain used by the player |
+
+### Connecting
+
+| Element | Description |
+|---|---|
+| **URL** | The IP-based URL your phone connects to (e.g. `http://192.168.1.42:4747`). A second URL using the Mac's `.local` hostname is shown when available |
+| **QR code** | Scan from your phone's camera to open the URL directly |
+| **PIN** | A 4-digit code the page asks for before unlocking the controls. **The PIN regenerates each time TangoDisplay launches** — anyone on the Wi-Fi who knows it can connect, so it is rotated automatically |
+| **Connected** | How many clients are currently connected |
+
+### Buttons
+
+| Button | What it does |
+|---|---|
+| **Regenerate PIN** | Issues a new 4-digit PIN immediately (existing connections are dropped) |
+| **Refresh URL** | Re-reads the Mac's current Wi-Fi address — use after switching networks |
+| **Open in Browser** | Opens the remote page in your Mac's browser, useful for testing |
+
+### Requirements & limitations
+
+- The phone and the Mac must be on the **same Wi-Fi network**. The remote does not work over cellular or across different networks.
+- If the Mac is not connected to Wi-Fi, the panel shows a warning and the URL is unavailable.
+- The PIN is not persisted — it changes on every launch by design.
+- The remote is for the **built-in player only**. With Music.app, Swinsian, or Embrace selected, the toggle still works but the sliders have no effect on those external players.
+
+---
+
 ## Integration with the Display
 
 When the built-in player is active, the dancer display responds exactly as it does with Music.app:

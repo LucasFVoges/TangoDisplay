@@ -172,14 +172,22 @@ private class MusicAppDropView: NSView {
 
         var urls: [URL] = []
         for item in pb.pasteboardItems ?? [] {
-            let str = item.string(forType: .fileURL)
-                ?? item.string(forType: Self.legacyPromiseURLType)
-            guard let str,
-                  let url = URL(string: str),
-                  url.isFileURL,
-                  FileManager.default.fileExists(atPath: url.path)
-            else { continue }
-            urls.append(url)
+            // Try public.file-url first, then the promise string. Per-item
+            // fallback (not `??` on the strings) so a broken file-url doesn't
+            // prevent us from trying the promise flavor on the same item —
+            // protects the v3.21.4 iTunes-purchased-AAC drag case.
+            let candidates = [
+                item.string(forType: .fileURL),
+                item.string(forType: Self.legacyPromiseURLType),
+            ].compactMap { $0 }
+            for str in candidates {
+                guard let url = URL(string: str),
+                      url.isFileURL,
+                      FileManager.default.fileExists(atPath: url.path)
+                else { continue }
+                urls.append(url)
+                break
+            }
         }
         if !urls.isEmpty {
             os_log("promise resolved %d url(s) from pasteboard string",
