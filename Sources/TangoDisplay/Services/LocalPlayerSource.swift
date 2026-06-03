@@ -79,6 +79,7 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         var availablePresets: [AudioUnitPreset] = []
         var activePresetID: UUID? = nil
         var pluginWindow: NSWindow?
+        var pluginWindowVC: PluginWindowViewController?
         var paramObserverTree: AUParameterTree?
         var paramObserverToken: AUParameterObserverToken?
         var currentPresetObservation: NSKeyValueObservation?
@@ -511,6 +512,7 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
             runtime.loadTask = nil
             runtime.pluginWindow?.close()
             runtime.pluginWindow = nil
+            runtime.pluginWindowVC = nil
         }
         currentEntryID = nil
         isCurrentEntryMarkedAsPlayed = false
@@ -1069,12 +1071,44 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
                     return
                 }
                 let wrapper = PluginWindowViewController(pluginVC: vc, player: self, slotId: slotId)
-                let window = NSWindow(contentViewController: wrapper)
+                // Force loadView/viewDidLoad so wrapper.view is sized.
+                _ = wrapper.view
+                let initialSize: NSSize = wrapper.view.frame.size != .zero
+                    ? wrapper.view.frame.size
+                    : NSSize(width: 600, height: 400)
+
+                let window = NSWindow(
+                    contentRect: NSRect(origin: .zero, size: initialSize),
+                    styleMask: [.titled, .closable, .resizable, .miniaturizable],
+                    backing: .buffered,
+                    defer: false
+                )
                 window.title = title
-                window.styleMask = [.titled, .closable, .resizable]
+                // Each plugin window stays standalone — never auto-merged into a
+                // tab group (which would also disable the resize handle). A
+                // unique tabbingIdentifier means even if macOS tries to group,
+                // there's no other window it could group with.
+                window.tabbingMode = .disallowed
+                window.tabbingIdentifier = "tangodisplay.plugin.\(slotId.uuidString)"
+                window.isRestorable = false
+                // Bypass `contentViewController = wrapper` deliberately: that
+                // setter binds the window's content size to the VC's
+                // preferredContentSize, which silently overrides manual resize
+                // and our own setContentSize calls. Setting contentView
+                // directly keeps the window freely resizable. We then hold the
+                // wrapper VC strongly in SlotRuntime since the window doesn't.
+                window.contentView = wrapper.view
+                window.contentMinSize = NSSize(width: 200, height: 100)
+                window.contentMaxSize = NSSize(width: 4096, height: 4096)
                 window.isReleasedWhenClosed = false
+                window.center()
                 window.makeKeyAndOrderFront(nil)
+                // Defensive: if macOS somehow grouped us anyway, break out.
+                if window.tabGroup != nil {
+                    window.moveTabToNewWindow(nil)
+                }
                 runtime.pluginWindow = window
+                runtime.pluginWindowVC = wrapper
             }
         }
     }
@@ -1082,6 +1116,7 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
     func closePluginWindow(slotId: UUID) {
         slotRuntimes[slotId]?.pluginWindow?.close()
         slotRuntimes[slotId]?.pluginWindow = nil
+        slotRuntimes[slotId]?.pluginWindowVC = nil
     }
 
     // MARK: - Presets (per slot)
@@ -1261,6 +1296,7 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
         runtime.loadTask = nil
         runtime.pluginWindow?.close()
         runtime.pluginWindow = nil
+        runtime.pluginWindowVC = nil
         teardownSlotObservers(runtime)
         if detachAVUnit, let unit = runtime.avUnit {
             audioEngine.disconnectNodeOutput(unit)

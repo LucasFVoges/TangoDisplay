@@ -62,15 +62,30 @@ final class AudioUnitPluginManager {
             componentFlags: 0,
             componentFlagsMask: 0
         )
-        guard !AVAudioUnitComponentManager.shared().components(matching: desc).isEmpty else {
+        let components = AVAudioUnitComponentManager.shared().components(matching: desc)
+        guard let component = components.first else {
             throw AudioUnitPluginError.componentNotFound
         }
-        // Try AUv3 out-of-process first so a 3rd-party plugin crash stays in its XPC.
-        // Fall back to in-process for AUv2 / plugins that don't support OOP hosting.
-        if let unit = await Self.tryInstantiate(desc: desc, options: .loadOutOfProcess) {
+
+        // V3 AUs are designed for out-of-process hosting and crash-isolate
+        // cleanly in their XPC service — prefer OOP for them. V2 AUs (the
+        // older Cocoa-view kind, e.g. Klanghelm MJUC) only relay UI
+        // resize events to the host when loaded *in-process*; under
+        // Apple's OOP V2-to-V3 bridge their view is wrapped in
+        // NSRemoteView, which doesn't surface remote-side frame changes
+        // to the host process. Loading those in-process is required for
+        // plugin-driven window resizing (e.g. MJUC's expander) to work.
+        // kAudioComponentFlag_IsV3AudioComponent = 1 << 2 (per AudioToolbox/AudioComponent.h).
+        // Not exposed in Swift's imported AudioToolbox in older SDKs, so use literal.
+        let isV3 = (component.audioComponentDescription.componentFlags & (1 << 2)) != 0
+
+        let primary: AudioComponentInstantiationOptions = isV3 ? .loadOutOfProcess : []
+        let fallback: AudioComponentInstantiationOptions = isV3 ? [] : .loadOutOfProcess
+
+        if let unit = await Self.tryInstantiate(desc: desc, options: primary) {
             return unit
         }
-        if let unit = await Self.tryInstantiate(desc: desc, options: []) {
+        if let unit = await Self.tryInstantiate(desc: desc, options: fallback) {
             return unit
         }
         throw AudioUnitPluginError.instantiationFailed("instantiation returned nil")
