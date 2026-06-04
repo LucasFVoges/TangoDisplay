@@ -404,83 +404,81 @@ Loudness analysis results are cached on disk so each file is only analysed once.
 
 ---
 
-## Audio Unit Plugin (Beta)
+## Audio Unit Plugin Chain
 
-The built-in player can host an Apple Audio Unit effect plugin directly in the audio chain — useful for applying EQ curves, dynamics processing, or filtering to improve the clarity of older recordings without modifying the source files.
+The built-in player can host **up to 4 Audio Unit effect plugins in series** directly in the audio chain — useful for applying EQ curves, dynamics processing, or filtering to improve the clarity of older recordings without modifying the source files. Each slot is independent: you can reorder, bypass, edit, and preset each one separately.
 
-> **Beta feature:** Test your plugin at home before using it live. If the plugin fails to load, playback continues unaffected.
+> **Test before you play:** Try your chain at home before using it live. If a plugin fails to load, playback continues unaffected. Third-party Audio Units run at your own risk — an unstable plugin may still interrupt playback.
 
-### Enabling the Plugin
+### Building the Chain
 
 1. Go to **Settings › Player**
-2. In the **Audio Unit Plugin** section, enable the **Enable Audio Unit Plugin** toggle
-3. Click **Choose…** to open the plugin picker
-4. Select a plugin — it loads immediately into the audio chain
+2. Open the **Audio Unit Plugins** section
+3. Click **Add Plugin** to open the plugin browser and pick an Audio Unit — it loads immediately into the next free slot
+4. Repeat to add up to 4 plugins. Audio flows through the slots top to bottom.
+
+If you used a single plugin in an earlier version of TangoDisplay, it is migrated automatically into **slot 1** of the chain on first launch.
 
 ### Supported Plugins
 
-The plugin picker shows only plugins suited to audio restoration work:
+The plugin browser lists every `kAudioUnitType_Effect` Audio Unit installed on your system — both Apple's built-in effects (parametric and graphic EQ, dynamics processor, multi-band compressor, peak limiter, shelf and pass filters) and any third-party effects you have installed (e.g. FabFilter Pro-Q4, Klanghelm MJUC).
 
-| Plugin | Purpose |
-|---|---|
-| AUNBandEQ | N-band parametric EQ |
-| AUGraphicEQ | Graphic EQ |
-| AUDynamicsProcessor | Dynamics processing |
-| AUMultibandCompressor | Multi-band compression |
-| AUPeakLimiter | Peak limiting |
-| AUHighShelfFilter | High shelf filter |
-| AULowShelfFilter | Low shelf filter |
-| AUHipass | High-pass filter |
-| AULowpass | Low-pass filter |
+Plugins load according to their format:
 
-### Controls
+| Format | How it loads | Why |
+|---|---|---|
+| **AUv3** | Out-of-process via XPC | A plugin crash is isolated and won't take down TangoDisplay |
+| **AUv2** | In-process | Required for correct editor-window resizing |
+
+### Per-Slot Controls
+
+Each slot in the chain has its own controls in **Settings › Player**:
 
 | Control | What it does |
 |---|---|
-| **Enable Audio Unit Plugin** | Inserts or removes the plugin from the audio chain |
-| **Choose…** | Opens the plugin picker to select a different plugin |
-| **Bypass** | Temporarily bypasses the plugin without unloading it |
-| **Open Plugin Window** | Opens the plugin's native editor UI |
-| **Remove** | Removes the selected plugin entirely |
+| **▲ / ▼** | Reorder the slot up or down within the chain |
+| **Open editor** (expand icon) | Opens that plugin's native editor UI in its own window |
+| **Replace…** | Swaps the slot's plugin for a different Audio Unit |
+| **Remove** (trash icon) | Removes that plugin from the chain, freeing the slot |
+
+A **Bypass entire chain** toggle at the top of the section lets you mute all effects at once without unloading them. To enable or disable *individual* slots during a set, use the Setlist toolbar popover (below).
 
 ### Audio Chain
 
-The plugin occupies a single slot in the audio chain — only one plugin can be active at a time:
+The plugins occupy up to 4 chained slots, processed in order:
 
 ```
-┌─────────────┐    ┌──────────────┐    ┌───────────────────────────┐    ┌───────────┐
-│  Audio File │───▶│  ReplayGain  │───▶│  AU Plugin  ← single slot │───▶│  Output   │
-│  (decoder)  │    │  (optional)  │    │  (optional, bypassable)   │    │  Device   │
-└─────────────┘    └──────────────┘    └───────────────────────────┘    └───────────┘
+┌─────────────┐    ┌──────────────┐    ┌──────────────────────────────────────────────┐    ┌───────────┐
+│  Audio File │───▶│  ReplayGain  │───▶│  Slot 1 ─▶ Slot 2 ─▶ Slot 3 ─▶ Slot 4         │───▶│  Output   │
+│  (decoder)  │    │  (optional)  │    │  (each optional, bypassable, reorderable)     │    │  Device   │
+└─────────────┘    └──────────────┘    └──────────────────────────────────────────────┘    └───────────┘
 ```
-
-To swap plugins, click **Choose…** again — the previous plugin is unloaded and replaced.
 
 ### Presets
 
-Presets let you save and recall complete plugin configurations — useful for switching between EQ curves for different rooms or recording eras.
+Presets let you save and recall a plugin's complete configuration **per slot** — useful for switching between EQ curves for different rooms or recording eras.
 
 **In Settings › Player:**
 
 | Control | What it does |
 |---|---|
-| Preset picker | Shows the active preset name (or "None" if unsaved) |
-| **Save as Preset…** | Prompts for a name and saves the current parameter state |
+| Preset picker | Shows the active preset name for that slot (or "None" if unsaved) |
+| **Save as Preset…** | Prompts for a name and saves that slot's current parameter state |
 | **Delete** | Removes the selected user preset |
 
 Factory presets built into the plugin appear at the top of the picker; your saved presets appear below them.
 
-**In the plugin floating window:**
+**In a plugin's floating window:**
 
-A **Preset:** bar at the bottom of the plugin window mirrors the Settings picker. You can switch or save presets without leaving the window.
+A **Preset:** bar at the bottom of each plugin's editor window mirrors the Settings picker for that slot. You can switch or save presets without leaving the window.
 
-**Auto-restore:** The last-used preset is saved automatically and reapplied the next time the plugin loads.
+**Auto-restore:** Each slot's last-used preset is saved automatically and reapplied the next time the plugin loads.
 
-**Dirty state:** If you adjust any parameter directly in the plugin window (e.g. drag an EQ band), the preset label resets to **None** to show the state no longer matches a saved preset.
+**Dirty state:** If you adjust any parameter directly in a plugin window (e.g. drag an EQ band), that slot's preset label resets to **None** to show the state no longer matches a saved preset.
 
 ### Setlist Toolbar Quick Access
 
-When a plugin is selected, a **puzzle piece button** appears in the Setlist toolbar next to the ReplayGain button. Click it to open the plugin window directly without navigating to Settings. The button is disabled when the plugin is turned off or bypassed.
+When the chain has at least one plugin, a **puzzle piece button** appears in the Setlist toolbar next to the ReplayGain button. Click it to open a popover for live chain access without going to Settings: enable or bypass the whole chain, toggle individual slots on or off, and open each plugin's editor window.
 
 ---
 
