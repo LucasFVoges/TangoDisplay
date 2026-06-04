@@ -4,6 +4,23 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.24.1</title>
+            <pubDate>Thu, 04 Jun 2026 19:42:18 +0000</pubDate>
+            <sparkle:version>86</sparkle:version>
+            <sparkle:shortVersionString>3.24.1</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li><strong>More third-party plugins now appear</strong>: the plugin browser also lists Music Effect Audio Units (kAudioUnitType_MusicEffect), not just plain effects &mdash; so plugins such as FabFilter Pro-Q 4 that register as music effects now show up and can be added to the chain.</li>
+                    <li><strong>Fixed a crash when opening some third-party plugin editors</strong> (e.g. FabFilter Pro-Q 4). Plugins now load out-of-process by default so a plugin's editor or processing crash is isolated from TangoDisplay. A small in-process allowlist (currently Klanghelm MJUC) keeps plugin-driven window auto-resize working where it's needed.</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.24.1/TangoDisplay-v3.24.1-universal.zip"
+                sparkle:edSignature="l7YTsT0ivB0PoyI0ZjqfWguJ0n/hHXeHQpKxJM5CePRLAefOZpJRKYqrnFZK6Zqc7Vymk+KPHqo64YOZQIWzDA=="
+                length="5962104"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.24.0</title>
             <pubDate>Thu, 04 Jun 2026 07:06:19 +0000</pubDate>
             <sparkle:version>85</sparkle:version>
