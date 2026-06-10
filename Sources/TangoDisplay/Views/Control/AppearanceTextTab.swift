@@ -33,6 +33,8 @@ struct AppearanceTextTab: View {
                         bold: $working.singerFontBold,       italic: $working.singerFontItalic)
                 fontRow("Track Counter", name: $working.trackCounterFontName, size: $working.trackCounterFontSize,
                         bold: $working.trackCounterFontBold, italic: $working.trackCounterFontItalic)
+                fontRow("TDJ Name",      name: $working.tdjNameFontName,       size: $working.tdjNameFontSize,
+                        bold: $working.tdjNameFontBold,       italic: $working.tdjNameFontItalic)
             } header: {
                 Text("Fonts")
                     .foregroundColor(ControlTheme.accent)

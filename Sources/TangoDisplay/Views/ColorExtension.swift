@@ -35,6 +35,7 @@ extension AppearanceProfile {
     var genreSwiftUIColor: Color         { Color(hex: genreColor) }
     var yearSwiftUIColor: Color          { Color(hex: yearColor) }
     var trackCounterSwiftUIColor: Color  { Color(hex: trackCounterColor) }
+    var tdjNameSwiftUIColor: Color       { Color(hex: tdjNameColor) }
     var singerSwiftUIColor: Color        { Color(hex: singerColor) }
 
     func font(name: String, size: Double, bold: Bool, italic: Bool) -> Font {
@@ -54,6 +55,7 @@ extension AppearanceProfile {
     var yearFont: Font   { font(name: yearFontName,   size: yearFontSize,   bold: yearFontBold,   italic: yearFontItalic) }
     var singerFont: Font        { font(name: singerFontName,       size: singerFontSize,       bold: singerFontBold,       italic: singerFontItalic) }
     var trackCounterFont: Font  { font(name: trackCounterFontName, size: trackCounterFontSize, bold: trackCounterFontBold, italic: trackCounterFontItalic) }
+    var tdjNameFont: Font       { font(name: tdjNameFontName,       size: tdjNameFontSize,       bold: tdjNameFontBold,       italic: tdjNameFontItalic) }
 
     var cortinaLabelSwiftUIColor:  Color { Color(hex: cortinaLabelColor) }
     var cortinaArtistSwiftUIColor: Color { Color(hex: cortinaArtistColor) }

@@ -243,6 +243,18 @@ final class AppSettings: ObservableObject {
     @Published var trackCounterPosition: TrackCounterPosition {
         didSet { UserDefaults.standard.set(trackCounterPosition.rawValue, forKey: kPrefix + "trackCounterPosition") }
     }
+    @Published var showTdjName: Bool {
+        didSet { UserDefaults.standard.set(showTdjName, forKey: kPrefix + "showTdjName") }
+    }
+    @Published var tdjName: String {
+        didSet { UserDefaults.standard.set(tdjName, forKey: kPrefix + "tdjName") }
+    }
+    @Published var tdjNamePosition: TrackCounterPosition {
+        didSet { UserDefaults.standard.set(tdjNamePosition.rawValue, forKey: kPrefix + "tdjNamePosition") }
+    }
+    @Published var tdjNameVisibility: TdjNameVisibility {
+        didSet { UserDefaults.standard.set(tdjNameVisibility.rawValue, forKey: kPrefix + "tdjNameVisibility") }
+    }
 
     // MARK: - Track info transformations
 
@@ -409,6 +421,12 @@ final class AppSettings: ObservableObject {
         showTrackCounter = ud.object(forKey: kPrefix + "showTrackCounter").flatMap { $0 as? Bool } ?? true
         let rawPos = ud.string(forKey: kPrefix + "trackCounterPosition") ?? ""
         trackCounterPosition = TrackCounterPosition(rawValue: rawPos) ?? .bottomRight
+        showTdjName = ud.object(forKey: kPrefix + "showTdjName").flatMap { $0 as? Bool } ?? false
+        tdjName = ud.string(forKey: kPrefix + "tdjName") ?? ""
+        let rawTdjPos = ud.string(forKey: kPrefix + "tdjNamePosition") ?? ""
+        tdjNamePosition = TrackCounterPosition(rawValue: rawTdjPos) ?? .bottomLeft
+        let rawTdjVis = ud.string(forKey: kPrefix + "tdjNameVisibility") ?? ""
+        tdjNameVisibility = TdjNameVisibility(rawValue: rawTdjVis) ?? .always
         if let data = ud.data(forKey: kPrefix + "trackTransforms") {
             if let rules = try? JSONDecoder().decode([String: TransformRule].self, from: data) {
                 trackTransforms = rules

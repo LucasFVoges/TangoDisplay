@@ -125,15 +125,20 @@ struct PresentationView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .overlay(alignment: settings.trackCounterPosition.overlayAlignment) {
-            if settings.showTrackCounter,
-               settings.trackCounterPosition != .centre,
-               appState.displayState.mode == .playing,
-               let pos = appState.displayState.tandaPosition {
-                Text(pos.label)
-                    .font(activeProfile.trackCounterFont)
-                    .foregroundColor(activeProfile.trackCounterSwiftUIColor)
+        .overlay(alignment: .topLeading)     { cornerItems(for: .topLeft) }
+        .overlay(alignment: .topTrailing)    { cornerItems(for: .topRight) }
+        .overlay(alignment: .bottomLeading)  { cornerItems(for: .bottomLeft) }
+        .overlay(alignment: .bottomTrailing) { cornerItems(for: .bottomRight) }
+        .overlay(alignment: .center) {
+            let mode = appState.displayState.mode
+            if tdjNameVisible(in: mode),
+               settings.tdjNamePosition == .centre,
+               mode != .playing {
+                Text(settings.tdjName)
+                    .font(activeProfile.tdjNameFont)
+                    .foregroundColor(activeProfile.tdjNameSwiftUIColor)
                     .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
+                    .multilineTextAlignment(.center)
                     .padding(24)
                     .allowsHitTesting(false)
             }
@@ -212,6 +217,42 @@ struct PresentationView: View {
             return
         }
         genreBgImage = NSImage(contentsOf: appState.profileStore.imageURL(for: filename))
+    }
+
+    private func tdjNameVisible(in mode: DisplayMode) -> Bool {
+        guard settings.showTdjName && !settings.tdjName.isEmpty else { return false }
+        switch settings.tdjNameVisibility {
+        case .playing:    return mode == .playing || mode == .cortina
+        case .idlePaused: return mode == .idle || mode == .paused
+        case .always:     return true
+        }
+    }
+
+    @ViewBuilder
+    private func cornerItems(for corner: TrackCounterPosition) -> some View {
+        let mode = appState.displayState.mode
+        let showTdj = tdjNameVisible(in: mode) && settings.tdjNamePosition == corner
+        let showCounter = settings.showTrackCounter
+            && settings.trackCounterPosition == corner
+            && mode == .playing
+        if showTdj || showCounter {
+            VStack(spacing: 12) {
+                if showTdj {
+                    Text(settings.tdjName)
+                        .font(activeProfile.tdjNameFont)
+                        .foregroundColor(activeProfile.tdjNameSwiftUIColor)
+                        .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
+                }
+                if showCounter, let pos = appState.displayState.tandaPosition {
+                    Text(pos.label)
+                        .font(activeProfile.trackCounterFont)
+                        .foregroundColor(activeProfile.trackCounterSwiftUIColor)
+                        .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
+                }
+            }
+            .padding(24)
+            .allowsHitTesting(false)
+        }
     }
 
     @ViewBuilder

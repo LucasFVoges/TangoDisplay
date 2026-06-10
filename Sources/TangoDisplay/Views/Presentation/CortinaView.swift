@@ -155,6 +155,17 @@ struct CortinaView: View {
                                         .foregroundColor(profile.lastTandaLabelSwiftUIColor)
                                         .multilineTextAlignment(.center)
                                 }
+                            case .tdjName:
+                                if settings.showTdjName,
+                                   settings.tdjNamePosition == .centre,
+                                   !settings.tdjName.isEmpty,
+                                   settings.tdjNameVisibility != .idlePaused {
+                                    Text(settings.tdjName)
+                                        .font(profile.tdjNameFont)
+                                        .foregroundColor(profile.tdjNameSwiftUIColor)
+                                        .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
+                                        .multilineTextAlignment(.center)
+                                }
                             default:
                                 EmptyView()
                             }

@@ -14,6 +14,7 @@ struct AppearanceColoursTab: View {
                 colorRow("Year",          hex: $working.yearColor)
                 colorRow("Singer",        hex: $working.singerColor)
                 colorRow("Track Counter", hex: $working.trackCounterColor)
+                colorRow("TDJ Name",      hex: $working.tdjNameColor)
             } header: {
                 Text("Display Colours")
                     .foregroundColor(ControlTheme.accent)

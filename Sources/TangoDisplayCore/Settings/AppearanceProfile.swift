@@ -55,6 +55,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var genreColor: String
     public var yearColor: String
     public var trackCounterColor: String
+    public var tdjNameColor: String
 
     public var transitionStyle: TransitionStyle
     public var transitionDuration: Double
@@ -179,6 +180,12 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
     public var trackCounterFontBold:   Bool
     public var trackCounterFontItalic: Bool
 
+    // TDJ Name font
+    public var tdjNameFontName:   String
+    public var tdjNameFontSize:   Double
+    public var tdjNameFontBold:   Bool
+    public var tdjNameFontItalic: Bool
+
     // Override text font/colour
     public var overrideTextFontName:   String
     public var overrideTextFontSize:   Double
@@ -202,6 +209,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 genreColor: String = "#AAAAAA",
                 yearColor: String = "#AAAAAA",
                 trackCounterColor: String = "#AAAAAA",
+                tdjNameColor: String = "#AAAAAA",
                 transitionStyle: TransitionStyle = .fade,
                 transitionDuration: Double = 0.4,
                 backgroundImageFilename: String? = nil,
@@ -227,8 +235,8 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 albumArtworkOffsetX: Double = 0.0,
                 albumArtworkOffsetY: Double = 0.0,
                 albumArtworkEdgeFade: Double = 0.0,
-                danceItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .title, .singer, .lastTandaLabel, .trackCounter],
-                cortinaItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .singer, .lastTandaLabel],
+                danceItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .title, .singer, .lastTandaLabel, .tdjName, .trackCounter],
+                cortinaItemOrder: [DisplayTextItem] = [.genre, .artist, .year, .singer, .lastTandaLabel, .tdjName],
                 showSinger: Bool = false,
                 singerSource: SingerSource = .comments,
                 showSingerDuringCortina: Bool = false,
@@ -275,6 +283,8 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
                 showLastTandaLabel: Bool = true,
                 trackCounterFontName: String = "System", trackCounterFontSize: Double = 36,
                 trackCounterFontBold: Bool = false, trackCounterFontItalic: Bool = false,
+                tdjNameFontName: String = "System", tdjNameFontSize: Double = 28,
+                tdjNameFontBold: Bool = false, tdjNameFontItalic: Bool = false,
                 overrideTextFontName: String = "System", overrideTextFontSize: Double = 72,
                 overrideTextFontBold: Bool = false, overrideTextFontItalic: Bool = false,
                 overrideTextColor: String = "#FFFFFF") {
@@ -304,6 +314,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.genreColor = genreColor
         self.yearColor = yearColor
         self.trackCounterColor = trackCounterColor
+        self.tdjNameColor      = tdjNameColor
         self.transitionStyle = transitionStyle
         self.transitionDuration = transitionDuration
         self.backgroundImageFilename = backgroundImageFilename
@@ -391,6 +402,10 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         self.trackCounterFontSize     = trackCounterFontSize
         self.trackCounterFontBold     = trackCounterFontBold
         self.trackCounterFontItalic   = trackCounterFontItalic
+        self.tdjNameFontName          = tdjNameFontName
+        self.tdjNameFontSize          = tdjNameFontSize
+        self.tdjNameFontBold          = tdjNameFontBold
+        self.tdjNameFontItalic        = tdjNameFontItalic
         self.overrideTextFontName   = overrideTextFontName
         self.overrideTextFontSize   = overrideTextFontSize
         self.overrideTextFontBold   = overrideTextFontBold
@@ -427,6 +442,7 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         genreColor           = try c.decode(String.self,          forKey: .genreColor)
         yearColor            = try c.decodeIfPresent(String.self,  forKey: .yearColor)         ?? "#AAAAAA"
         trackCounterColor    = try c.decodeIfPresent(String.self, forKey: .trackCounterColor) ?? "#AAAAAA"
+        tdjNameColor         = try c.decodeIfPresent(String.self, forKey: .tdjNameColor)      ?? "#AAAAAA"
         transitionStyle      = try c.decode(TransitionStyle.self, forKey: .transitionStyle)
         transitionDuration   = try c.decode(Double.self,          forKey: .transitionDuration)
         // New fields — absent in older JSON files, fall back to defaults
@@ -546,6 +562,11 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         trackCounterFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .trackCounterFontBold)   ?? false
         trackCounterFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .trackCounterFontItalic) ?? false
 
+        tdjNameFontName   = try c.decodeIfPresent(String.self, forKey: .tdjNameFontName)   ?? "System"
+        tdjNameFontSize   = try c.decodeIfPresent(Double.self, forKey: .tdjNameFontSize)   ?? 28
+        tdjNameFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .tdjNameFontBold)   ?? false
+        tdjNameFontItalic = try c.decodeIfPresent(Bool.self,   forKey: .tdjNameFontItalic) ?? false
+
         overrideTextFontName   = try c.decodeIfPresent(String.self, forKey: .overrideTextFontName)   ?? "System"
         overrideTextFontSize   = try c.decodeIfPresent(Double.self, forKey: .overrideTextFontSize)   ?? 72
         overrideTextFontBold   = try c.decodeIfPresent(Bool.self,   forKey: .overrideTextFontBold)   ?? false
@@ -556,11 +577,21 @@ public struct AppearanceProfile: Codable, Identifiable, Equatable {
         if !danceItemOrder.contains(.lastTandaLabel) {
             danceItemOrder.append(.lastTandaLabel)
         }
+        if !danceItemOrder.contains(.tdjName) {
+            if let idx = danceItemOrder.firstIndex(of: .trackCounter) {
+                danceItemOrder.insert(.tdjName, at: idx)
+            } else {
+                danceItemOrder.append(.tdjName)
+            }
+        }
         if !danceItemOrder.contains(.trackCounter) {
             danceItemOrder.append(.trackCounter)
         }
         if !cortinaItemOrder.contains(.lastTandaLabel) {
             cortinaItemOrder.append(.lastTandaLabel)
+        }
+        if !cortinaItemOrder.contains(.tdjName) {
+            cortinaItemOrder.append(.tdjName)
         }
     }
 
@@ -649,6 +680,7 @@ public enum DisplayTextItem: String, Codable, CaseIterable {
     case nextUpLabel     // "COMING UP" heading text
     case lastTandaLabel  // "LAST TANDA" announcement label
     case trackCounter    // rendered inline when position == .centre
+    case tdjName         // DJ name label, rendered inline when position == .centre
 
     public var displayName: String {
         switch self {
@@ -663,6 +695,7 @@ public enum DisplayTextItem: String, Codable, CaseIterable {
         case .nextUpLabel:     "Next Up Label"
         case .lastTandaLabel:  "Last Tanda Label"
         case .trackCounter:    "Track Counter"
+        case .tdjName:         "TDJ Name"
         }
     }
 }

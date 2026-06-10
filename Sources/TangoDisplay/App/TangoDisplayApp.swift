@@ -51,6 +51,7 @@ struct TangoDisplayApp: App {
             SetTimingsWindowContent()
                 .environmentObject(appState)
                 .environmentObject(appState.settings)
+                .preferredColorScheme(.dark)
         }
         .defaultSize(width: 580, height: 530)
 
@@ -59,6 +60,7 @@ struct TangoDisplayApp: App {
             WaveformWindowContent()
                 .environmentObject(appState)
                 .environmentObject(appState.settings)
+                .preferredColorScheme(.dark)
         }
         .defaultSize(width: 700, height: 80)
 

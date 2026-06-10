@@ -7,11 +7,13 @@ struct DisplaySettingsView: View {
     @State private var draftCortinaLabel: String = ""
     @State private var draftNextUpLabel: String = ""
     @State private var draftIdleMessage: String = ""
+    @State private var draftTdjName: String = ""
 
     private var hasUnsavedLabelChanges: Bool {
         draftCortinaLabel != settings.cortinaLabel ||
         draftNextUpLabel  != settings.nextUpLabel  ||
-        draftIdleMessage  != settings.idleMessage
+        draftIdleMessage  != settings.idleMessage  ||
+        draftTdjName      != settings.tdjName
     }
 
     var body: some View {
@@ -65,6 +67,22 @@ struct DisplaySettingsView: View {
                 labelRow("Cortina",       binding: $draftCortinaLabel)
                 labelRow("Coming up",     binding: $draftNextUpLabel)
                 labelRow("Idle message",  binding: $draftIdleMessage)
+                Divider()
+                Toggle("Show TDJ Name", isOn: $settings.showTdjName)
+                labelRow("TDJ Name", binding: $draftTdjName)
+                    .disabled(!settings.showTdjName)
+                Picker("Position", selection: $settings.tdjNamePosition) {
+                    ForEach(TrackCounterPosition.allCases) { pos in
+                        Text(pos.displayName).tag(pos)
+                    }
+                }
+                .disabled(!settings.showTdjName)
+                Picker("Show when", selection: $settings.tdjNameVisibility) {
+                    ForEach(TdjNameVisibility.allCases) { vis in
+                        Text(vis.displayName).tag(vis)
+                    }
+                }
+                .disabled(!settings.showTdjName)
                 HStack {
                     if hasUnsavedLabelChanges {
                         Text("● Unsaved changes")
@@ -76,6 +94,7 @@ struct DisplaySettingsView: View {
                         settings.cortinaLabel = draftCortinaLabel
                         settings.nextUpLabel  = draftNextUpLabel
                         settings.idleMessage  = draftIdleMessage
+                        settings.tdjName      = draftTdjName
                     }
                     .buttonStyle(.bordered)
                     .disabled(!hasUnsavedLabelChanges)
@@ -91,6 +110,7 @@ struct DisplaySettingsView: View {
             draftCortinaLabel = settings.cortinaLabel
             draftNextUpLabel  = settings.nextUpLabel
             draftIdleMessage  = settings.idleMessage
+            draftTdjName      = settings.tdjName
             appState.refreshDisplayList()
         }
     }

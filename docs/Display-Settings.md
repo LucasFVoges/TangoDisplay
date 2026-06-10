@@ -39,3 +39,14 @@ These are the text strings shown on the dancer display for special states. Edit 
 | **Idle message** | Displayed when nothing is playing in Music.app | *(empty)* |
 
 Leave **Idle message** empty to show a blank screen when music is stopped. Enter a message (e.g. "Back soon…") to display something instead.
+
+### DJ Name
+
+| Control | Description |
+|---|---|
+| **Show TDJ Name** | Master switch — enables the DJ name overlay on the dancer display |
+| **TDJ Name** | The text to display (edit the field, then click **Save**) |
+| **Position** | Where the name appears: **Top left**, **Top right**, **Bottom left** (default), **Bottom right**, or **Centred (in text order)**. When set to Centred, the name renders as part of the text stack — adjust its position in Appearance > Visibility > Text Order for Dance Tracks. |
+| **Show when** | **Any track playing** — name visible only while a track is playing · **Idle / Paused** — name visible only when idle or paused · **Always** — name always visible |
+
+Click **Save** to apply name text changes.
