@@ -4,6 +4,23 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.25.5</title>
+            <pubDate>Sat, 14 Jun 2026 12:00:00 +0000</pubDate>
+            <sparkle:version>96</sparkle:version>
+            <sparkle:shortVersionString>3.25.5</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li><strong>Fixed (Setlist paste)</strong>: pasting tracks copied from foobar2000 now works &mdash; foobar2000 writes file paths as bare POSIX strings rather than file:// URLs, which the previous clipboard reader missed.</li>
+                    <li><strong>Fixed (build)</strong>: resolved a Swift type-checker timeout that broke the build on older Intel Macs.</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.25.5/TangoDisplay-v3.25.5-universal.zip"
+                sparkle:edSignature="wK8ySbdkiTgyWwdUTFQffS0mCDcAWvL6w+dNhB7x74Wx0LupyB7f/IIMQFWyuypkWlANgnA2u51OPPlC0TsoDQ=="
+                length="6410829"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.25.4</title>
             <pubDate>Thu, 12 Jun 2026 12:00:00 +0000</pubDate>
             <sparkle:version>95</sparkle:version>
