@@ -4,6 +4,22 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.26.0</title>
+            <pubDate>Mon, 15 Jun 2026 13:42:25 +0000</pubDate>
+            <sparkle:version>97</sparkle:version>
+            <sparkle:shortVersionString>3.26.0</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li><strong>New (Custom Text Lines)</strong>: add unlimited free-text lines to the display for dance tracks and the cortina "coming up" preview. Each line supports metadata placeholders (<code>{Artist} {Title} {Genre} {Year} {Singer} {AlbumArtist} {Comment} {Grouping}</code>, case-insensitive), its own font, size, bold/italic and colour, independent Dance / Next Up visibility, and can be reordered among the built-in fields. Managed in Appearance &rsaquo; Visibility &rsaquo; Custom Lines.</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.26.0/TangoDisplay-v3.26.0-universal.zip"
+                sparkle:edSignature="oXb10aO8fFH/Wxu/JV0UghARobGPH103vETiNuWCuw/e71C+/jbSg2HOnE5X6zPIO8Fd7kE4QBCvny+IdKcTDA=="
+                length="6506779"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.25.5</title>
             <pubDate>Sat, 14 Jun 2026 12:00:00 +0000</pubDate>
             <sparkle:version>96</sparkle:version>
