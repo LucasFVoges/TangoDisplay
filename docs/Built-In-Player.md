@@ -134,14 +134,16 @@ When **Auto-fade all cortinas** is enabled, the fade buttons are automatically d
 
 Drag rows up or down to reorder. Tracks that have already been played are locked in place and cannot be moved — only queued (unplayed) and paused tracks are draggable. This prevents accidentally scrambling your played history.
 
+If you pause a track and then drag a queued track above it, pressing play starts the new topmost track — playback always begins from the highest not-yet-played row, and the paused track reverts to a normal queued track.
+
 ### Context Menu Actions
 
 Right-click any row:
 
 | Action | What it does |
 |---|---|
-| **Mark as Played** | Stamps a queued track as played without playing it |
-| **Mark as Not Played** | Resets a played track to queued so it will play again |
+| **Mark as Played** | Stamps a queued track as played without playing it. Played tracks stay a contiguous block at the top, so only tracks directly below the played block can be marked — marking a lower track on its own does nothing |
+| **Mark as Not Played** | Resets a played track to queued so it will play again. Only tracks at the bottom edge of the played block can be reset, keeping the played block contiguous |
 | **Stop after Playing** | Sets a stop marker — playback halts automatically when this track finishes. Can also be set on the currently playing track. Shows as **Resume after Playing** when already set; click again to clear it. |
 | **Delete** | Removes the track from the setlist (asks for confirmation) |
 | **Ignore Auto-gap before this Track** | Disables auto-gap for this track only. Shows as **Resume Auto-gap** when already set; click again to re-enable it. |
