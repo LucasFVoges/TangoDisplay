@@ -4,6 +4,23 @@
         <title>TangoDisplay</title>
         <link>https://github.com/richardsladetdj-creator/TangoDisplay</link>
         <item>
+            <title>Version 3.26.2</title>
+            <pubDate>Thu, 18 Jun 2026 18:24:13 +0000</pubDate>
+            <sparkle:version>99</sparkle:version>
+            <sparkle:shortVersionString>3.26.2</sparkle:shortVersionString>
+            <description><![CDATA[
+                <ul>
+                    <li><strong>Fixed (Built-in Player)</strong>: after pausing a track and dragging another queued track above it, pressing play now starts the new top track instead of resuming the paused one.</li>
+                    <li><strong>Fixed (Setlist)</strong>: &ldquo;Mark as Played / Not Played&rdquo; no longer leaves a played track stranded below a queued one &mdash; the played block stays a contiguous group at the top.</li>
+                </ul>
+            ]]></description>
+            <enclosure
+                url="https://github.com/richardsladetdj-creator/TangoDisplay/releases/download/v3.26.2/TangoDisplay-v3.26.2-universal.zip"
+                sparkle:edSignature="7aTBIcpu+9LeadS/Hzcnzw3EnjTpQttNs77UPJ5rPCn1Xe37xl/xd7fSBbusgcxYIIfAOlH4Kd5bjzvmvzkkBA=="
+                length="6514079"
+                type="application/zip"/>
+        </item>
+        <item>
             <title>Version 3.26.1</title>
             <pubDate>Mon, 15 Jun 2026 16:10:36 +0000</pubDate>
             <sparkle:version>98</sparkle:version>
