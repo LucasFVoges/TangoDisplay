@@ -21,8 +21,6 @@ The control window is the central hub for TangoDisplay. It uses a sidebar for na
 
 The **Live** page shows what is currently playing, a live preview of the dancer display, and quick-action buttons.
 
-![Live view](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/live-view.png)
-
 ---
 
 ## Status indicators

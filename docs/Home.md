@@ -2,18 +2,6 @@
 
 TangoDisplay is a native macOS menu-bar app for tango DJs. Connect it to Music.app, Swinsian, Embrace, or JRiver Media Center — or use the built-in player to manage your setlist directly. It automatically detects cortinas and shows a clean fullscreen display on an external monitor so dancers know what genre and who is playing.
 
-![Live Display — fullscreen dancer screen on external monitor](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/feature-dancer-display.png)
-
-![Live Preview — control window with real-time dancer screen preview](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/feature-preview.png)
-
-![Display Settings — monitor selection, mirror mode, and display labels](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/feature-display-settings.png)
-
-![Profiles Library — built-in and custom appearance profiles](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/feature-profiles.png)
-
-![Appearance — transitions, colors, background images, and fonts](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/feature-appearance.png)
-
-![Cortina Rules — automatic cortina detection from Music.app genre tags](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/feature-cortina-rules.png)
-
 ---
 
 ## Contents

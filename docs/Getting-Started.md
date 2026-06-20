@@ -33,13 +33,9 @@ cd TangoDisplay
 
 ## First launch
 
-When TangoDisplay starts it appears as a small display icon in the menu bar:
-
-![Menu bar icon](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/menu-bar.png)
+When TangoDisplay starts it appears as a small display icon in the menu bar.
 
 Click the icon to reveal the menu:
-
-![Menu bar menu](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/menu-bar-menu.png)
 
 - **Show Display Window** — brings the presentation window to the front
 - **Show Settings Window** — opens the main control window

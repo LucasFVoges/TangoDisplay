@@ -2,8 +2,6 @@
 
 The **Display** tab controls which monitor receives the dancer display, fullscreen behaviour, and what text labels appear.
 
-![Display settings](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/display-settings.png)
-
 ---
 
 ## Monitor

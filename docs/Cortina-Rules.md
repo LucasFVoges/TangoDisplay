@@ -2,8 +2,6 @@
 
 TangoDisplay detects cortinas automatically by inspecting the genre tag of each track in Music.app. You configure the detection rules in the **Cortina Rules** settings tab.
 
-![Cortina Rules settings](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/cortina-rules.png)
-
 ---
 
 ## How detection works

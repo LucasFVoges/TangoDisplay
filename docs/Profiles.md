@@ -2,8 +2,6 @@
 
 Profiles let you save a complete set of appearance settings — colors, fonts, background image, and transitions — and switch between them instantly. Useful if you DJ at different venues or prefer different looks for different events.
 
-![Profiles](https://raw.githubusercontent.com/richardsladetdj-creator/TangoDisplay/main/docs/screenshots/profiles.png)
-
 ---
 
 ## Built-in profiles
