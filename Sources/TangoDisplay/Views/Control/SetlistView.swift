@@ -170,8 +170,17 @@ private class MusicAppDropView: NSView {
     private func acceptLegacyFilePromise(_ sender: NSDraggingInfo) -> Bool {
         let pb = sender.draggingPasteboard
 
+        let items = pb.pasteboardItems ?? []
+        // How many items advertise a file flavor at all — the count we expect to
+        // resolve. Cloud-only tracks advertise a file-url/promise but have no
+        // on-disk file, so they pass this test yet fail per-item resolution below.
+        let advertisedCount = items.filter {
+            $0.string(forType: .fileURL) != nil
+                || $0.string(forType: Self.legacyPromiseURLType) != nil
+        }.count
+
         var urls: [URL] = []
-        for item in pb.pasteboardItems ?? [] {
+        for item in items {
             // Try public.file-url first, then the promise string. Per-item
             // fallback (not `??` on the strings) so a broken file-url doesn't
             // prevent us from trying the promise flavor on the same item —
@@ -189,22 +198,34 @@ private class MusicAppDropView: NSView {
                 break
             }
         }
-        if !urls.isEmpty {
+        // Fast path only when every advertised item resolved to an on-disk file.
+        // A partial resolve means the selection mixes downloaded and cloud-only
+        // tracks — the unresolved ones would be silently dropped, so fall through
+        // to materialise the whole selection instead of returning a truncated set.
+        if !urls.isEmpty && urls.count >= advertisedCount {
             os_log("promise resolved %d url(s) from pasteboard string",
                    log: dropLog, type: .info, urls.count)
             onDrop(urls)
             return true
         }
 
-        // No on-disk URLs at all — ask Music.app to materialise the promised
-        // files. Blocking but only hit for pure cloud-only drags.
+        // Partial or zero local resolution — ask Music.app to materialise the
+        // promised files (writes cached copies of every track, cloud-only included).
+        // Blocking, but only hit when the drag isn't fully local on disk.
+        os_log("promise partial: resolved %d of %d advertised — materialising",
+               log: dropLog, type: .info, urls.count, advertisedCount)
         let destDir = Self.filePromiseDestination()
         let names = sender.namesOfPromisedFilesDropped(atDestination: destDir) ?? []
         let writtenURLs = names.map { destDir.appendingPathComponent($0) }
         os_log("promise materialised %d file(s) at %{public}@",
                log: dropLog, type: .info, names.count, destDir.path)
-        guard !writtenURLs.isEmpty else { return false }
-        onDrop(writtenURLs)
+        if !writtenURLs.isEmpty {
+            onDrop(writtenURLs)
+            return true
+        }
+        // Materialise yielded nothing — fall back to whatever local URLs resolved.
+        guard !urls.isEmpty else { return false }
+        onDrop(urls)
         return true
     }
 
@@ -480,6 +501,7 @@ struct SetlistView: View {
     @State private var pasteMonitor: Any? = nil
     @State private var hogConflictWarning = false
     @State private var hogDeviceStolenAlertShown = false
+    @State private var dropFeedback: String? = nil
 
     // Seed the @State mirrors from the player so the very first body render
     // after this view is (re-)created already reflects the live playing track.
@@ -795,19 +817,46 @@ struct SetlistView: View {
         case .neverAdd:
             shouldAddDuplicates = false
         case nil:
-            let (shouldAdd, remember) = promptForDuplicates()
+            let dupURLs = urls.filter { existingURLs.contains($0) }
+            let matchedPlayed = setlist.entries.contains {
+                $0.state == .played && dupURLs.contains($0.fileURL)
+            }
+            let (shouldAdd, remember) = promptForDuplicates(count: dupURLs.count, alreadyPlayed: matchedPlayed)
             if remember { setlist.setDuplicateSessionDecision(shouldAdd ? .alwaysAdd : .neverAdd) }
             shouldAddDuplicates = shouldAdd
         }
 
         let toInsert = shouldAddDuplicates ? urls : urls.filter { !existingURLs.contains($0) }
         if !toInsert.isEmpty { setlist.insertURLs(toInsert, before: anchorID) }
+
+        let skipped = urls.count - toInsert.count
+        if skipped > 0 {
+            showDropFeedback("Added \(toInsert.count) — \(skipped) already in set")
+        }
     }
 
-    private func promptForDuplicates() -> (shouldAdd: Bool, remember: Bool) {
+    // Brief auto-dismissing note in the bottom drop-hint slot, so silently
+    // filtered duplicates aren't misread as a failed drag.
+    private func showDropFeedback(_ message: String) {
+        withAnimation { dropFeedback = message }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            withAnimation { dropFeedback = nil }
+        }
+    }
+
+    private func promptForDuplicates(count: Int, alreadyPlayed: Bool) -> (shouldAdd: Bool, remember: Bool) {
         let alert = NSAlert()
-        alert.messageText = "Track Already in Setlist"
-        alert.informativeText = "This track already exists in this set. Add anyway?"
+        alert.messageText = count == 1 ? "Track Already in Setlist" : "Tracks Already in Setlist"
+        if count == 1 {
+            alert.informativeText = alreadyPlayed
+                ? "This track has already been played in this set. Add anyway?"
+                : "This track already exists in this set. Add anyway?"
+        } else {
+            alert.informativeText = alreadyPlayed
+                ? "\(count) tracks have already been played in this set. Add anyway?"
+                : "\(count) tracks are already in this set. Add anyway?"
+        }
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Add")
         alert.addButton(withTitle: "Don't Add")
@@ -919,7 +968,19 @@ struct SetlistView: View {
         }
         .listStyle(.plain)
         .overlay(alignment: .bottom) {
-            dropHint
+            if let dropFeedback {
+                Text(dropFeedback)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+                    .padding(.bottom, 8)
+                    .transition(.opacity)
+            } else {
+                dropHint
+            }
         }
     }
 

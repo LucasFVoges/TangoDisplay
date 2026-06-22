@@ -24,7 +24,23 @@ final class LocalPlayerSource: NSObject, ObservableObject, MusicPlayerSource {
     @Published private(set) var duration: Double = 0
     @Published private(set) var currentEntryID: UUID?
     @Published private(set) var isCurrentEntryMarkedAsPlayed: Bool = false
-    @Published private(set) var isActivePlaying: Bool = false
+    @Published private(set) var isActivePlaying: Bool = false {
+        didSet {
+            guard isActivePlaying != oldValue else { return }
+            // ponytail: idle-sleep assertion only, not a full power-source watcher — battery's
+            // shorter idle-sleep timeout was suspending playback mid-track on unplug.
+            if isActivePlaying {
+                sleepAssertionToken = ProcessInfo.processInfo.beginActivity(
+                    options: .idleSystemSleepDisabled,
+                    reason: "TangoDisplay setlist playback"
+                )
+            } else if let token = sleepAssertionToken {
+                ProcessInfo.processInfo.endActivity(token)
+                sleepAssertionToken = nil
+            }
+        }
+    }
+    private var sleepAssertionToken: NSObjectProtocol?
 
     var volume: Float {
         get { playerNode.volume }

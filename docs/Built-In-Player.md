@@ -31,7 +31,7 @@ Drag tracks directly from:
 - **Swinsian** — drag from the browser
 - **Finder** — drag audio files from anywhere on your filesystem
 
-Drop onto the track list or into the empty drop zone when the list is empty. Tracks are added with full metadata read from the audio file itself — they do not need to be in any library.
+Drop onto the track list or into the empty drop zone when the list is empty. Dropped rows appear instantly with their filename and fill in full metadata (read from the audio file itself) a moment later — they do not need to be in any library. Cloud-only Music.app tracks are downloaded on drop, so a mixed selection of downloaded and cloud-only tracks is added in full rather than partially.
 
 To insert mid-list, drag onto a specific row to place the new track before it rather than appending to the bottom.
 
@@ -41,13 +41,16 @@ You can also **copy** audio files in Finder, Music.app, Swinsian, or Foobar2000 
 
 #### Duplicate Track Protection
 
-When **Duplicate track protection** is enabled in **Player Settings**, dropping a track that is already in the setlist (played or unplayed) shows an alert:
+When **Duplicate track protection** is enabled in **Player Settings**, dropping one or more tracks already in the setlist (played or unplayed) shows an alert. The wording reflects how many duplicates were dropped and whether they have already been played, e.g.:
 
 > *This track already exists in this set. Add anyway?*
+> *3 tracks have already been played in this set. Add anyway?*
 
-- **Add** — adds the duplicate.
-- **Don't Add** — skips it.
+- **Add** — adds the duplicate(s).
+- **Don't Add** — skips them.
 - **Remember for this session** — check this before clicking either button to lock in your choice. Subsequent duplicates are then added or skipped silently for the rest of the session. The remembered choice is cleared when you click **Clear Setlist**.
+
+When duplicates are skipped silently (because of a remembered choice or the **Don't Add** button), a brief note appears at the bottom of the list — e.g. *Added 4 — 2 already in set* — so the skipped tracks aren't mistaken for a failed drag.
 
 Non-duplicate tracks in the same drag operation are always added immediately, regardless of this setting.
 

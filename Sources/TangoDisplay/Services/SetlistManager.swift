@@ -92,15 +92,27 @@ final class SetlistManager: ObservableObject {
     // Capturing a UUID (rather than an Int) prevents stale-index bugs when the
     // list mutates during the async metadata read.
     func insertURLs(_ urls: [URL], before anchorID: UUID?) {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            var collected: [SetlistEntry] = []
-            for url in urls {
-                guard isAudioURL(url) else { continue }
+        let audioURLs = urls.filter { isAudioURL($0) }
+        guard !audioURLs.isEmpty else { return }
+        // Insert with a filename placeholder first so the row appears instantly;
+        // the async metadata read below fills real tags. Reading metadata before
+        // inserting made drags look like they failed, prompting a re-drag that then
+        // hit a spurious duplicate warning.
+        let placeholders = audioURLs.map { url in
+            SetlistEntry(fileURL: url,
+                         track: Track(title: url.deletingPathExtension().lastPathComponent,
+                                      artist: "", genre: "", persistentID: url.path))
+        }
+        insert(placeholders, before: anchorID)   // already calls save() + loadMissingDurations()
+        for p in placeholders {
+            let id = p.id, url = p.fileURL
+            Task { @MainActor [weak self] in
+                guard let self else { return }
                 let track = await SetlistManager.readMetadata(from: url)
-                collected.append(SetlistEntry(fileURL: url, track: track))
+                guard let i = self.entries.firstIndex(where: { $0.id == id }) else { return }
+                self.entries[i].track = track
+                self.save()
             }
-            self.insert(collected, before: anchorID)
         }
     }
 
